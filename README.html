@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Récap Apps Script — Les Enfants de Pondypatch</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bleu:        #3A7CA5;
+    --bleu-dark:   #2c5f7e;
+    --bleu-light:  #EAF3FF;
+    --or:          #FFD966;
+    --vert:        #4CAF7D;
+    --vert-light:  #E8F7EF;
+    --orange:      #F0923A;
+    --orange-light:#FFF4E0;
+    --violet:      #7B5EA7;
+    --violet-light:#F3EEF9;
+    --rouge:       #C0392B;
+    --rouge-light: #FDECEA;
+    --gris:        #f7f8fa;
+    --texte:       #1e2533;
+    --muted:       #7a8094;
+    --border:      #e4e7ef;
+    --surface:     #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f0f3f8;
+    color: var(--texte);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bleu-dark);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav a {
+    display: block;
+    padding: 14px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    letter-spacing: 0.03em;
+  }
+  nav a:hover { color: #fff; border-bottom-color: var(--or); }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bleu);
+    padding: 56px 40px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 75% 40%, rgba(255,217,102,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 15% 80%, rgba(255,255,255,0.07) 0%, transparent 50%);
+  }
+  .header-badge {
+    display: inline-block;
+    background: var(--or);
+    color: var(--bleu-dark);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+    position: relative;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem;
+    color: #fff;
+    position: relative;
+    margin-bottom: 8px;
+    line-height: 1.15;
+  }
+  header h1 em { color: var(--or); font-style: italic; }
+  header p {
+    color: rgba(255,255,255,0.7);
+    font-size: 15px;
+    position: relative;
+    max-width: 560px;
+    margin: 0 auto;
+    font-weight: 300;
+  }
+  .tech-pills {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    position: relative;
+  }
+  .tech-pill {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  /* ── CONTAINER ── */
+  .container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 44px 24px 80px;
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.45rem;
+    color: var(--bleu);
+    margin: 52px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    scroll-margin-top: 60px;
+  }
+  .section-title .anchor { color: var(--bleu); text-decoration: none; }
+
+  /* ── INTRO CARD ── */
+  .intro-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--bleu);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin-top: 28px;
+    font-size: 15px;
+    color: var(--texte);
+    line-height: 1.7;
+  }
+
+  /* ── FILE CARDS GRID ── */
+  .files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+
+  .file-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .file-card:hover {
+    box-shadow: 0 6px 20px rgba(58,124,165,0.12);
+    transform: translateY(-2px);
+  }
+
+  .file-name {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--bleu-dark);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .file-badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--bleu);
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+  .file-badge.html { background: var(--orange); }
+
+  .fn-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .fn-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--bleu-light);
+    color: var(--bleu-dark);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .fn-tag.private { background: #f0f0f6; color: #666; }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead th {
+    background: var(--bleu);
+    color: #fff;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--gris); }
+
+  code {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: var(--bleu-light);
+    color: var(--bleu-dark);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .tag-form     { background: var(--bleu-light);   color: var(--bleu); }
+  .tag-daily    { background: var(--vert-light);   color: #2e7a55; }
+  .tag-monthly  { background: var(--orange-light); color: #a85e1a; }
+  .tag-auto     { background: var(--vert-light);   color: #2e7a55; }
+  .tag-manuel   { background: var(--orange-light); color: #a85e1a; }
+
+  /* ── FLOW CARDS ── */
+  .flow-section { display: flex; flex-direction: column; gap: 16px; }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .flow-header {
+    padding: 16px 22px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .flow-header.bleu   { background: var(--bleu); }
+  .flow-header.vert   { background: var(--vert); }
+  .flow-header.orange { background: var(--orange); }
+  .flow-header.violet { background: var(--violet); }
+
+  .flow-header h3 { font-size: 15px; font-weight: 700; color: #fff; margin: 0; }
+  .flow-header p  { font-size: 12px; color: rgba(255,255,255,0.75); margin: 3px 0 0; font-family: 'DM Mono', monospace; }
+
+  .flow-body { padding: 20px 22px; }
+  .flow-steps { display: flex; flex-direction: column; gap: 12px; }
+
+  .flow-step { display: flex; gap: 14px; align-items: flex-start; }
+
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--bleu-light);
+    color: var(--bleu);
+    font-size: 12px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .flow-header.vert   ~ .flow-body .step-num { background: var(--vert-light); color: #2e7a55; }
+  .flow-header.orange ~ .flow-body .step-num { background: var(--orange-light); color: #a85e1a; }
+  .flow-header.violet ~ .flow-body .step-num { background: var(--violet-light); color: var(--violet); }
+
+  .step-content { font-size: 14px; color: var(--texte); line-height: 1.65; }
+  .step-content strong { color: var(--bleu-dark); }
+  .step-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    padding: 6px 10px;
+    background: var(--gris);
+    border-radius: 6px;
+    border-left: 3px solid var(--border);
+  }
+
+  /* ── RELANCE GRID ── */
+  .relance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .relance-grid { grid-template-columns: 1fr; } }
+
+  .relance-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .relance-header {
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+  }
+  .relance-header.parrains { background: var(--bleu); }
+  .relance-header.membres  { background: var(--vert); }
+
+  .relance-body {
+    padding: 4px 0;
+  }
+  .relance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .relance-row:last-child { border-bottom: none; }
+  .relance-label { color: var(--muted); font-size: 12px; }
+  .relance-value { font-weight: 600; font-size: 13px; }
+
+  /* ── MENU SHEET ── */
+  .menus-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 680px) { .menus-grid { grid-template-columns: 1fr; } }
+
+  .menu-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .menu-header {
+    padding: 14px 20px;
+    background: var(--bleu);
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+  }
+  .menu-body { padding: 14px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .menu-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .menu-arrow { color: var(--bleu); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .menu-fn { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  /* ── MODE TEST ── */
+  .test-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--vert);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+  }
+  .test-box strong { color: var(--vert); }
+  .test-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .test-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 14px;
+    color: var(--texte);
+  }
+  .test-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--vert);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  /* ── HELLOASSO BLOCK ── */
+  .ha-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .ha-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .ha-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .ha-value { font-size: 14px; color: var(--texte); line-height: 1.6; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 28px;
+    font-size: 13px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  footer strong { color: var(--bleu); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    header { padding: 40px 20px; }
+    header h1 { font-size: 1.9rem; }
+    .container { padding: 32px 16px 60px; }
+    nav { padding: 0 16px; }
+    .files-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#fichiers">📁 Fichiers</a>
+  <a href="#declencheurs">⚡ Déclencheurs</a>
+  <a href="#formulaires">📋 Formulaires</a>
+  <a href="#emails-direction">📨 Direction</a>
+  <a href="#emails-parrains">💛 Parrains</a>
+  <a href="#emails-membres">💚 Membres</a>
+  <a href="#relances">🔁 Relances</a>
+  <a href="#menus">🗂️ Menus</a>
+  <a href="#webapp">🌐 Web App</a>
+  <a href="#helloasso">🔌 HelloAsso</a>
+  <a href="#sheets">🗄️ Sheets</a>
+  <a href="#test">🧪 Mode test</a>
+</nav>
+
+<!-- HEADER -->
+<header>
+  <div class="header-badge">Apps Script</div>
+  <h1>Les Enfants de <em>Pondypatch</em></h1>
+  <p>Système de gestion complet pour une association de parrainage — suivi des enfants, parrains, cotisations, comptes-rendus d'entretiens, relances automatiques et tableau de bord.</p>
+  <div class="tech-pills">
+    <span class="tech-pill">Apps Script</span>
+    <span class="tech-pill">Google Sheets</span>
+    <span class="tech-pill">Google Forms</span>
+    <span class="tech-pill">HelloAsso</span>
+    <span class="tech-pill">Google Drive</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- FICHIERS .GS -->
+  <div class="section-title" id="fichiers">📁 Organisation des fichiers .gs</div>
+  <div class="files-grid">
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Config.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">CONFIG</span>
+        <span class="fn-tag">IDs feuilles</span>
+        <span class="fn-tag">IDs formulaires</span>
+        <span class="fn-tag">Colonnes</span>
+        <span class="fn-tag">HelloAsso keys</span>
+        <span class="fn-tag">Emails</span>
+        <span class="fn-tag">Montants</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Utils.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag private">isAllowedForm_</span>
+        <span class="fn-tag private">dedupeKeepLast_</span>
+        <span class="fn-tag private">moveRecentFirst_</span>
+        <span class="fn-tag">updateDropdown_</span>
+        <span class="fn-tag">getImageBlobFromUrl</span>
+        <span class="fn-tag">addSpacer</span>
+        <span class="fn-tag">extractDocId</span>
+        <span class="fn-tag">moveRowToEnd</span>
+        <span class="fn-tag">checkAndMoveNewRow</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Enfants.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">mainUpdateKids</span>
+        <span class="fn-tag">assignKidIDandCalculateAge</span>
+        <span class="fn-tag">UpdateKidsName</span>
+        <span class="fn-tag">majTousLesSuivisEtParrainage</span>
+        <span class="fn-tag">chercherEnfant</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Parrains.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">mainUpdateSponsors</span>
+        <span class="fn-tag">assignSponsorIDs</span>
+        <span class="fn-tag">UpdateSponsors</span>
+        <span class="fn-tag">chercherParrain</span>
+        <span class="fn-tag">envoyerLienPaiementAuxParrains</span>
+        <span class="fn-tag">envoyerRelanceIndividuelle</span>
+        <span class="fn-tag">relancerTousLesEligibles</span>
+        <span class="fn-tag">lancerRelancesTousEligibles</span>
+        <span class="fn-tag">joursDepuis</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Parrainages.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">processSponsorshipSubmission</span>
+        <span class="fn-tag">markParrainageFinished</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Entretiens.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">processRdvSuivi</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> CR.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">genererCRPourCetteLigne</span>
+        <span class="fn-tag">genererCRProtege</span>
+        <span class="fn-tag">ecrireLienEnvoiDansSheet</span>
+        <span class="fn-tag">ouvrirSidebarEnvoi</span>
+        <span class="fn-tag">envoyerCRParrain</span>
+        <span class="fn-tag">envoi_CR_Parrain</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Emails.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">getLogoBase64</span>
+        <span class="fn-tag private">_resetLogoCache</span>
+        <span class="fn-tag private">_buildEmailHtml</span>
+        <span class="fn-tag">getTemplateAppelCotisation</span>
+        <span class="fn-tag">getTemplateRelance</span>
+        <span class="fn-tag">getTemplateAppelCotisationAnnuelle</span>
+        <span class="fn-tag">getTemplateRelanceMembre</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> HelloAsso.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">getAccessToken</span>
+        <span class="fn-tag">getSlugsCampagneSemestre</span>
+        <span class="fn-tag">getSlugCotisationAnnee</span>
+        <span class="fn-tag">exportToSheets</span>
+        <span class="fn-tag">exportCotisationToSheets</span>
+        <span class="fn-tag">traiterWebhookHelloAsso</span>
+        <span class="fn-tag private">_traiterWebhookParrainage</span>
+        <span class="fn-tag private">_traiterWebhookCotisation</span>
+        <span class="fn-tag private">_traiterPaiementParrainage</span>
+        <span class="fn-tag private">_traiterPaiementCotisation</span>
+        <span class="fn-tag private">_exportSlugToSheet</span>
+        <span class="fn-tag private">_ajouterOuMettreAJourPaiementSheet</span>
+        <span class="fn-tag">getLienCampagne</span>
+        <span class="fn-tag">getLienCotisation</span>
+        <span class="fn-tag">mettreAJourConfiguration</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Paiements.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">getSemestreEnCours</span>
+        <span class="fn-tag">calculerStatut</span>
+        <span class="fn-tag">calculerStatutCotisation</span>
+        <span class="fn-tag">mergeParrainages</span>
+        <span class="fn-tag">mergeCotisations</span>
+        <span class="fn-tag">indexerPaiementsHelloAsso</span>
+        <span class="fn-tag">indexerPaiementsManuels</span>
+        <span class="fn-tag">processPaiementManuel</span>
+        <span class="fn-tag private">_getEmailDepuisNom</span>
+        <span class="fn-tag">forcerRechercheEtExport</span>
+        <span class="fn-tag">getParrainsActifsIds</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Membres.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">getMembersList</span>
+        <span class="fn-tag">UpdateMembresName</span>
+        <span class="fn-tag">envoyerAppelCotisationAuxMembres</span>
+        <span class="fn-tag">relancerMembreIndividuel</span>
+        <span class="fn-tag">relancerMembresEligibles</span>
+        <span class="fn-tag">pauseAntiSpam</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Diagnostic.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">normaliser</span>
+        <span class="fn-tag">nomCorrespondent</span>
+        <span class="fn-tag">trouverMembrePourCotisation</span>
+        <span class="fn-tag">trouverParrainPourSuivi</span>
+        <span class="fn-tag">buildDiagnostic</span>
+        <span class="fn-tag">buildDiagnosticData</span>
+        <span class="fn-tag">remplirDiagnostic</span>
+        <span class="fn-tag">getSheetRowsByName</span>
+        <span class="fn-tag">getHeaderName</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Trigger.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">onOpen</span>
+        <span class="fn-tag">processNewSubmission</span>
+        <span class="fn-tag">MajOngletSuivi</span>
+        <span class="fn-tag">declencheurValidationSemestrielle</span>
+        <span class="fn-tag">declencheurRecapMensuel</span>
+        <span class="fn-tag">declencheurRelanceMembres</span>
+        <span class="fn-tag">majOngletDiagnostic</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> Dashboard.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">buildDashboardData</span>
+        <span class="fn-tag">calculerDureeMoyenne</span>
+        <span class="fn-tag">calculerAgesMoyens</span>
+        <span class="fn-tag">extraireAnnees</span>
+        <span class="fn-tag">calculerParAnnee</span>
+        <span class="fn-tag">calculerProfilEnfants</span>
+        <span class="fn-tag">buildMembresData</span>
+        <span class="fn-tag">buildCotisationsData</span>
+        <span class="fn-tag">getCRsData</span>
+        <span class="fn-tag">serveDashboardData</span>
+        <span class="fn-tag">getSheetRows</span>
+        <span class="fn-tag">countDistinct</span>
+        <span class="fn-tag">trierEtLimiter</span>
+        <span class="fn-tag">trierParNiveau</span>
+      </div>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge">.gs</span> WebApp.gs</div>
+      <div class="fn-list">
+        <span class="fn-tag">doGet — routeur pages</span>
+        <span class="fn-tag">doPost — webhook HelloAsso</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FICHIERS HTML -->
+  <div class="section-title" style="margin-top: 28px;">🌐 Fichiers HTML (pages Web App)</div>
+  <div class="files-grid">
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge html">.html</span> accueil.html</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">Page d'accueil — navigation, stats globales, 4 actions manuelles de l'année</p>
+    </div>
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge html">.html</span> dashboard.html</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">Tableau de bord complet — onglets Parrainages, Membres, Cotisations, Diagnostic</p>
+    </div>
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge html">.html</span> formulaires.html</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">Accès rapide aux 7 formulaires de gestion</p>
+    </div>
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge html">.html</span> timeline.html</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">Timeline annuelle des automatisations et actions manuelles</p>
+    </div>
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge html">.html</span> process.html</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">Process détaillé en 4 phases du parrainage</p>
+    </div>
+    <div class="file-card">
+      <div class="file-name"><span class="file-badge html">.html</span> guide_installation.html</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">Guide d'installation du tableau de bord sur mobile et desktop</p>
+    </div>
+  </div>
+
+  <!-- DÉCLENCHEURS -->
+  <div class="section-title" id="declencheurs">⚡ Déclencheurs à paramétrer</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fonction</th>
+          <th>Type</th>
+          <th>Fréquence</th>
+          <th>Condition interne</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>processNewSubmission</code></td>
+          <td><span class="tag tag-form">À la soumission</span></td>
+          <td>× 8 formulaires</td>
+          <td><code>switch</code> sur <code>sheetName</code></td>
+        </tr>
+        <tr>
+          <td><code>MajOngletSuivi</code></td>
+          <td><span class="tag tag-daily">Quotidien</span></td>
+          <td>1h–2h du matin</td>
+          <td>Synchronise HelloAsso + recalcule les âges</td>
+        </tr>
+        <tr>
+          <td><code>declencheurValidationSemestrielle</code></td>
+          <td><span class="tag tag-monthly">Mensuel</span></td>
+          <td>1er du mois</td>
+          <td>Agit si mois = janvier ou juillet</td>
+        </tr>
+        <tr>
+          <td><code>declencheurRecapMensuel</code></td>
+          <td><span class="tag tag-monthly">Mensuel</span></td>
+          <td>1er du mois</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>declencheurRelanceMembres</code></td>
+          <td><span class="tag tag-monthly">Mensuel</span></td>
+          <td>1er du mois</td>
+          <td>Agit si mois = juillet</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FORMULAIRES -->
+  <div class="section-title" id="formulaires">📋 Formulaires Google (8 formulaires)</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Formulaire</th>
+          <th>Déclencheur associé</th>
+          <th>Effet automatique</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nouvel enfant</td>
+          <td><code>mainUpdateKids</code></td>
+          <td>Attribue un KID-XXXX, met à jour les dropdowns</td>
+        </tr>
+        <tr>
+          <td>Nouveau parrain</td>
+          <td><code>mainUpdateSponsors</code></td>
+          <td>Attribue un SP-XXXX, met à jour les dropdowns</td>
+        </tr>
+        <tr>
+          <td>Nouveau parrainage</td>
+          <td><code>processSponsorshipSubmission</code></td>
+          <td>Sépare IDs, assigne SPIP-XXXX, statut Ongoing</td>
+        </tr>
+        <tr>
+          <td>Nouvel entretien</td>
+          <td><code>processRdvSuivi</code> → <code>genererCRPourCetteLigne</code></td>
+          <td>Récupère les IDs, génère le CR Google Doc</td>
+        </tr>
+        <tr>
+          <td>Fin de parrainage</td>
+          <td><code>markParrainageFinished</code></td>
+          <td>Passe le statut à Finished, libère l'enfant</td>
+        </tr>
+        <tr>
+          <td>Validation CR</td>
+          <td><code>envoi_CR_Parrain</code></td>
+          <td>Génère le PDF et l'envoie au parrain</td>
+        </tr>
+        <tr>
+          <td>Nouveau membre</td>
+          <td><code>UpdateMembresName</code></td>
+          <td>Met à jour la dropdown membres</td>
+        </tr>
+        <tr>
+          <td>Paiement manuel</td>
+          <td><code>processPaiementManuel</code></td>
+          <td>Résout l'email, met à jour le suivi</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EMAILS DIRECTION -->
+  <div class="section-title" id="emails-direction">📨 Emails envoyés à la direction</div>
+  <div class="flow-section">
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div>
+          <h3>🗓️ Rappel création campagnes HelloAsso</h3>
+          <p>declencheurValidationSemestrielle — janvier et juillet</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">1</div><div class="step-content">Le déclencheur mensuel s'exécute le 1er de chaque mois</div></div>
+          <div class="flow-step"><div class="step-num">2</div><div class="step-content">Si le mois est <strong>janvier</strong> : rappel pour créer la campagne parrainage S1 et la campagne cotisation annuelle</div></div>
+          <div class="flow-step"><div class="step-num">3</div><div class="step-content">Si le mois est <strong>juillet</strong> : rappel pour créer la campagne parrainage S2 uniquement</div></div>
+          <div class="flow-step"><div class="step-num">4</div><div class="step-content">Email HTML envoyé à <code>EMAILS_DIRECTION</code> avec les titres et slugs exacts à saisir sur HelloAsso<div class="step-note">Une fois la campagne créée, le webhook détecte automatiquement et envoie les emails aux parrains/membres</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div>
+          <h3>📊 Récapitulatif mensuel des impayés parrains</h3>
+          <p>declencheurRecapMensuel — chaque mois</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">1</div><div class="step-content">Le 1er de chaque mois, liste tous les parrains actifs avec un paiement en retard</div></div>
+          <div class="flow-step"><div class="step-num">2</div><div class="step-content">Email récapitulatif envoyé à <code>EMAIL_DIRIGEANT</code> avec un bouton de relance individuelle par parrain</div></div>
+          <div class="flow-step"><div class="step-num">3</div><div class="step-content">La direction peut déclencher une relance individuelle directement depuis l'email, sans ouvrir le Sheet</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div>
+          <h3>✅ Confirmation webhook HelloAsso</h3>
+          <p>traiterWebhookHelloAsso — à chaque paiement détecté</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">1</div><div class="step-content">HelloAsso envoie un webhook à chaque nouvelle campagne créée ou paiement reçu</div></div>
+          <div class="flow-step"><div class="step-num">2</div><div class="step-content">Si c'est une <strong>nouvelle campagne parrainage</strong> : emails envoyés automatiquement aux parrains actifs + confirmation à la direction</div></div>
+          <div class="flow-step"><div class="step-num">3</div><div class="step-content">Si c'est une <strong>nouvelle campagne cotisation</strong> : emails envoyés automatiquement aux membres + confirmation à la direction</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EMAILS PARRAINS -->
+  <div class="section-title" id="emails-parrains">💛 Emails envoyés aux parrains</div>
+  <div class="flow-section">
+
+    <div class="flow-card">
+      <div class="flow-header vert">
+        <div>
+          <h3>📧 Appel à cotisation semestrielle</h3>
+          <p>envoyerLienPaiementAuxParrains — déclenché par le webhook</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">1</div><div class="step-content">HelloAsso détecte la nouvelle campagne parrainage → webhook reçu</div></div>
+          <div class="flow-step"><div class="step-num">2</div><div class="step-content">Récupère la liste de tous les <strong>parrains actifs</strong> (statut Ongoing dans Fiche_Parrainage)</div></div>
+          <div class="flow-step"><div class="step-num">3</div><div class="step-content">Envoie à chacun un email HTML avec le lien de paiement HelloAsso pour le semestre en cours<div class="step-note">Pause anti-spam entre chaque envoi — garde-fou : un seul envoi par label de semestre via ScriptProperties</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header orange">
+        <div>
+          <h3>🔔 Relance parrain en retard</h3>
+          <p>envoyerRelanceIndividuelle / relancerTousLesEligibles</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">1</div><div class="step-content">Peut être déclenchée <strong>manuellement</strong> depuis le récap mensuel ou en masse depuis le menu Sheet</div></div>
+          <div class="flow-step"><div class="step-num">2</div><div class="step-content">Vérifie que le parrain n'a pas déjà été relancé dans les <strong>30 derniers jours</strong> (<code>DELAI_RELANCE_JOURS</code>)<div class="step-note">La date du dernier rappel est stockée dans la colonne DATE_DERNIER_RAPPEL du suivi et dans ScriptProperties</div></div></div>
+          <div class="flow-step"><div class="step-num">3</div><div class="step-content">Si éligible : envoie un email de relance avec le lien de paiement pour le semestre en cours</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EMAILS MEMBRES -->
+  <div class="section-title" id="emails-membres">💚 Emails envoyés aux membres</div>
+  <div class="flow-section">
+
+    <div class="flow-card">
+      <div class="flow-header vert">
+        <div>
+          <h3>📧 Appel à cotisation annuelle</h3>
+          <p>envoyerAppelCotisationAuxMembres — déclenché par le webhook</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">1</div><div class="step-content">HelloAsso détecte la nouvelle campagne cotisation annuelle → webhook reçu</div></div>
+          <div class="flow-step"><div class="step-num">2</div><div class="step-content">Récupère la liste de tous les membres depuis l'onglet <strong>Membres</strong></div></div>
+          <div class="flow-step"><div class="step-num">3</div><div class="step-content">Envoie à chacun un email HTML avec le lien de paiement HelloAsso pour l'adhésion annuelle<div class="step-note">Participation libre à partir du montant minimum défini dans CONFIG.MONTANT_MINIMUM_COTISATION</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header orange">
+        <div>
+          <h3>🔔 Relance membre en retard</h3>
+          <p>relancerMembresEligibles / relancerMembreIndividuel</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">1</div><div class="step-content">Le 1er juillet, <code>declencheurRelanceMembres</code> envoie un récap à la direction listant tous les membres sans cotisation</div></div>
+          <div class="flow-step"><div class="step-num">2</div><div class="step-content">La direction reçoit un email avec un <strong>bouton Relancer</strong> par membre — rien ne part sans validation</div></div>
+          <div class="flow-step"><div class="step-num">3</div><div class="step-content">En cliquant, la Web App appelle <code>relancerMembreIndividuel(email)</code> et affiche une confirmation<div class="step-note">Identifié par email — délai minimum 180 jours stocké dans ScriptProperties</div></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RELANCES COMPARÉ -->
+  <div class="section-title" id="relances">🔁 Système de relance comparé</div>
+  <div class="relance-grid">
+
+    <div class="relance-card">
+      <div class="relance-header parrains">💛 Parrains</div>
+      <div class="relance-body">
+        <div class="relance-row"><span class="relance-label">Déclenchement</span><span class="relance-value">Manuel ou mensuel</span></div>
+        <div class="relance-row"><span class="relance-label">Délai minimum</span><span class="relance-value">30 jours</span></div>
+        <div class="relance-row"><span class="relance-label">Condition</span><span class="relance-value">Paiement semestre absent</span></div>
+        <div class="relance-row"><span class="relance-label">Récap direction</span><span class="relance-value">Oui — chaque mois</span></div>
+        <div class="relance-row"><span class="relance-label">Relance individuelle</span><span class="relance-value">Oui — depuis l'email</span></div>
+        <div class="relance-row"><span class="relance-label">Clé identification</span><span class="relance-value">SPONSOR_ID</span></div>
+        <div class="relance-row"><span class="relance-label">Stockage anti-doublon</span><span class="relance-value">ScriptProperties + Sheet</span></div>
+      </div>
+    </div>
+
+    <div class="relance-card">
+      <div class="relance-header membres">💚 Membres</div>
+      <div class="relance-body">
+        <div class="relance-row"><span class="relance-label">Déclenchement</span><span class="relance-value">Automatique — juillet</span></div>
+        <div class="relance-row"><span class="relance-label">Délai minimum</span><span class="relance-value">180 jours (6 mois)</span></div>
+        <div class="relance-row"><span class="relance-label">Condition</span><span class="relance-value">Cotisation annuelle absente</span></div>
+        <div class="relance-row"><span class="relance-label">Récap direction</span><span class="relance-value">Oui — juillet</span></div>
+        <div class="relance-row"><span class="relance-label">Relance individuelle</span><span class="relance-value">Oui — depuis l'email</span></div>
+        <div class="relance-row"><span class="relance-label">Clé identification</span><span class="relance-value">Email</span></div>
+        <div class="relance-row"><span class="relance-label">Stockage anti-doublon</span><span class="relance-value">ScriptProperties</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MENUS SHEET -->
+  <div class="section-title" id="menus">🗂️ Menus Google Sheet (onOpen)</div>
+  <div class="menus-grid">
+
+    <div class="menu-card">
+      <div class="menu-header">📋 CR Enfants</div>
+      <div class="menu-body">
+        <div class="menu-item">
+          <span class="menu-arrow">→</span>
+          <div>
+            <div>Générer les CR manquants</div>
+            <div class="menu-fn">genererCRPourCetteLigne</div>
+          </div>
+        </div>
+        <div class="menu-item">
+          <span class="menu-arrow">→</span>
+          <div>
+            <div>Envoyer le CR de cette ligne</div>
+            <div class="menu-fn">ouvrirSidebarEnvoi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-card">
+      <div class="menu-header">🤖 Parrainages</div>
+      <div class="menu-body">
+        <div class="menu-item"><span class="menu-arrow">→</span><div><div>Synchroniser maintenant</div><div class="menu-fn">MajOngletSuivi</div></div></div>
+        <div class="menu-item"><span class="menu-arrow">→</span><div><div>Forcer recherche campagne</div><div class="menu-fn">forcerRechercheEtExport</div></div></div>
+        <div class="menu-item"><span class="menu-arrow">→</span><div><div>Envoyer appel cotisation parrains</div><div class="menu-fn">envoyerLienPaiementAuxParrains</div></div></div>
+        <div class="menu-item"><span class="menu-arrow">→</span><div><div>Envoyer appel cotisation membres</div><div class="menu-fn">envoyerAppelCotisationAuxMembres</div></div></div>
+        <div class="menu-item"><span class="menu-arrow">→</span><div><div>Relancer tous les parrains éligibles</div><div class="menu-fn">relancerTousLesEligibles</div></div></div>
+        <div class="menu-item"><span class="menu-arrow">→</span><div><div>Relancer les membres en retard</div><div class="menu-fn">relancerMembresEligibles</div></div></div>
+        <div class="menu-item"><span class="menu-arrow">→</span><div><div>Tester les templates emails</div><div class="menu-fn">testerTemplatesEmails</div></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WEB APP ROUTES -->
+  <div class="section-title" id="webapp">🌐 Web App — Routes (doGet)</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Action</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>accueil</code></td><td>Page d'accueil de la Web App</td></tr>
+        <tr><td><code>dashboard_page</code></td><td>Tableau de bord complet</td></tr>
+        <tr><td><code>guide</code></td><td>Guide d'installation</td></tr>
+        <tr><td><code>timeline</code></td><td>Timeline process annuel</td></tr>
+        <tr><td><code>formulaires</code></td><td>Accès aux formulaires</td></tr>
+        <tr><td><code>process</code></td><td>Process parrainage en 4 phases</td></tr>
+        <tr><td><code>relancer</code></td><td>Relance individuelle d'un parrain (lien sécurisé par token UUID)</td></tr>
+        <tr><td><code>relancer_tous</code></td><td>Relance en masse de tous les parrains éligibles</td></tr>
+        <tr><td><code>relancer_membre</code></td><td>Relance individuelle d'un membre (lien sécurisé par token UUID)</td></tr>
+        <tr><td><code>relancer_tous_membres</code></td><td>Relance en masse de tous les membres éligibles</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- HELLOASSO -->
+  <div class="section-title" id="helloasso">🔌 Intégration HelloAsso</div>
+  <div class="ha-grid">
+    <div class="ha-card">
+      <div class="ha-label">Authentification</div>
+      <div class="ha-value">OAuth2 client credentials — token mis en cache dans <code>ScriptProperties</code></div>
+    </div>
+    <div class="ha-card">
+      <div class="ha-label">Export</div>
+      <div class="ha-value">Paiements stockés dans <code>helloasso-s1</code>, <code>helloasso-s2</code>, <code>helloasso-cotisation</code></div>
+    </div>
+    <div class="ha-card">
+      <div class="ha-label">Déduplication</div>
+      <div class="ha-value">Clé <code>email_date_montant</code> pour éviter les doublons à l'import</div>
+    </div>
+    <div class="ha-card">
+      <div class="ha-label">Webhook</div>
+      <div class="ha-value">Événements <code>Form</code> (nouvelle campagne) et <code>Order</code> (paiement) reçus via <code>doPost</code></div>
+    </div>
+    <div class="ha-card">
+      <div class="ha-label">Détection campagnes</div>
+      <div class="ha-value">Par slug — ex. <code>parrainages-s1-2025</code>, <code>adhesion-2025</code></div>
+    </div>
+  </div>
+
+  <!-- SHEETS -->
+  <div class="section-title" id="sheets">🗄️ Structure des onglets Google Sheets</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Onglet</th><th>Contenu</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Fiche_Enfant_Form</code></td><td>Fiches enfants avec KID-XXXX</td></tr>
+        <tr><td><code>Fiche_Parrain_Form</code></td><td>Fiches parrains avec SP-XXXX</td></tr>
+        <tr><td><code>Fiche_Parrainage_Form</code></td><td>Parrainages avec SPIP-XXXX et statut Ongoing/Finished</td></tr>
+        <tr><td><code>Rdv_suivi</code></td><td>Entretiens de suivi avec lien CR et statut</td></tr>
+        <tr><td><code>Fin_Parrainage_Form</code></td><td>Soumissions de fin de parrainage</td></tr>
+        <tr><td><code>Validation_CR_Form</code></td><td>Validations de CR par la direction</td></tr>
+        <tr><td><code>Membres</code></td><td>Liste des membres de l'association</td></tr>
+        <tr><td><code>paiements-manuels</code></td><td>Paiements saisis manuellement (parrainage + cotisation)</td></tr>
+        <tr><td><code>helloasso-s1</code></td><td>Paiements parrainage S1 importés depuis HelloAsso</td></tr>
+        <tr><td><code>helloasso-s2</code></td><td>Paiements parrainage S2 importés depuis HelloAsso</td></tr>
+        <tr><td><code>helloasso-cotisation</code></td><td>Paiements cotisation importés depuis HelloAsso</td></tr>
+        <tr><td><code>suivi_parrainages</code></td><td>Tableau de suivi des cotisations par parrain et semestre</td></tr>
+        <tr><td><code>cotisations-merged</code></td><td>Fusion HelloAsso + paiements manuels pour les cotisations membres</td></tr>
+        <tr><td><code>diagnostic</code></td><td>Problèmes de réconciliation (cotisations sans membre, emails différents, parrainages sans parrain)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODE TEST -->
+  <div class="section-title" id="test">🧪 Mode test</div>
+  <div class="test-box">
+    <strong>MODE_TEST: true</strong> dans <code>Config.gs</code> — tous les emails sont redirigés vers <code>EMAIL_TEST</code> sans exception.
+    <div class="test-list">
+      <div class="test-item"><div class="test-dot"></div><div><strong>Emails parrains</strong> → EMAIL_TEST</div></div>
+      <div class="test-item"><div class="test-dot"></div><div><strong>Emails membres</strong> → EMAIL_TEST</div></div>
+      <div class="test-item"><div class="test-dot"></div><div><strong>Emails direction</strong> (webhook, récap, validation semestrielle) → EMAIL_TEST</div></div>
+      <div class="test-item"><div class="test-dot"></div><div><strong>Objet préfixé</strong> <code>"TEST — "</code> pour identification immédiate</div></div>
+      <div class="test-item"><div class="test-dot"></div><div><strong>Aucune donnée réelle</strong> n'est envoyée à un vrai destinataire</div></div>
+      <div class="test-item"><div class="test-dot"></div><div>Les guards anti-doublon (<code>ScriptProperties</code>) ne sont <strong>pas</strong> mis à jour en mode test</div></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Les Enfants de Pondypatch &nbsp;·&nbsp; Apps Script · Google Sheets · HelloAsso · Google Drive
+</footer>
+
+</body>
+</html>
