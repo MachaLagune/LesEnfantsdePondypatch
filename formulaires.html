@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulaires — Les Enfants de Pondypatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bleu:#2E7FA8;--bleu-fonce:#1B5570;--bleu-clair:#EBF5FB;
+    --orange:#E8502A;--orange-clair:#FDF0EB;
+    --jaune:#F5C020;--jaune-clair:#FEF8E7;
+    --vert:#27AE60;--vert-clair:#E9F7EF;
+    --violet:#7B4E9E;--violet-clair:#F3EEF9;
+    --rouge:#C0392B;--rouge-clair:#FDECEA;
+    --bg:#F8F6F2;--surface:#FFFFFF;
+    --border:rgba(46,127,168,0.12);--texte:#1A3444;--muted:#7A9AAD;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--texte);line-height:1.7;}
+
+
+  header{background:var(--bleu-fonce);padding:52px 56px 44px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:350px;height:350px;background:radial-gradient(circle,rgba(245,192,32,0.15) 0%,transparent 65%);}
+  .header-inner{max-width:900px;margin:0 auto;position:relative;z-index:1;}
+  .header-eyebrow{font-size:11px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--jaune);margin-bottom:12px;}
+  header h1{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,46px);font-weight:900;color:#fff;line-height:1.1;margin-bottom:12px;}
+  header h1 em{color:var(--jaune);font-style:italic;}
+  header p{color:rgba(255,255,255,0.65);font-size:15px;font-weight:300;max-width:500px;}
+
+  main{max-width:960px;margin:0 auto;padding:52px 40px 72px;}
+  .section-header{margin-bottom:32px;}
+  .section-eyebrow{font-size:11px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--bleu);margin-bottom:6px;}
+  .section-header h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--bleu-fonce);}
+  .section-header p{color:var(--muted);font-size:14px;margin-top:6px;}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:56px;}
+  .form-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:28px 24px;display:flex;flex-direction:column;gap:14px;opacity:0;animation:riseIn 0.4s ease forwards;transition:box-shadow 0.2s,transform 0.2s;}
+  .form-card:hover{box-shadow:0 8px 32px rgba(46,127,168,0.12);transform:translateY(-3px);}
+  .form-card:nth-child(1){animation-delay:.04s}.form-card:nth-child(2){animation-delay:.08s}
+  .form-card:nth-child(3){animation-delay:.12s}.form-card:nth-child(4){animation-delay:.16s}
+  .form-card:nth-child(5){animation-delay:.20s}.form-card:nth-child(6){animation-delay:.24s}
+
+  .form-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+  .form-card h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--bleu-fonce);line-height:1.2;}
+  .form-card p{font-size:13px;color:var(--muted);line-height:1.65;flex:1;}
+  .form-card p strong{color:var(--texte);font-weight:600;}
+
+  .form-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;width:fit-content;}
+  .tag-form{background:var(--bleu-clair);color:var(--bleu);}
+  .tag-manuel{background:var(--jaune-clair);color:#9A7200;}
+  .tag-auto{background:var(--vert-clair);color:var(--vert);}
+
+  .form-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;text-decoration:none;transition:all 0.2s;margin-top:4px;border:2px solid transparent;}
+  .btn-bleu{background:var(--bleu);color:#fff;box-shadow:0 4px 14px rgba(46,127,168,0.3);}
+  .btn-bleu:hover{background:var(--bleu-fonce);transform:translateY(-1px);}
+  .btn-orange{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(232,80,42,0.3);}
+  .btn-orange:hover{background:#c74020;transform:translateY(-1px);}
+  .btn-vert{background:var(--vert);color:#fff;box-shadow:0 4px 14px rgba(39,174,96,0.3);}
+  .btn-vert:hover{background:#1e8c4e;transform:translateY(-1px);}
+  .btn-rouge{background:var(--rouge);color:#fff;box-shadow:0 4px 14px rgba(192,57,43,0.3);}
+  .btn-rouge:hover{background:#a93226;transform:translateY(-1px);}
+  .btn-jaune{background:var(--jaune);color:var(--bleu-fonce);box-shadow:0 4px 14px rgba(245,192,32,0.35);}
+  .btn-jaune:hover{background:#d4a510;transform:translateY(-1px);}
+
+  .divider{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:48px 0;}
+  .info-box{background:var(--bleu-clair);border:1.5px solid rgba(46,127,168,0.2);border-radius:14px;padding:20px 24px;display:flex;gap:14px;align-items:flex-start;font-size:14px;color:var(--bleu-fonce);line-height:1.65;}
+  .info-box-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+
+  @keyframes riseIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:640px){header{padding:40px 24px;}main{padding:36px 20px;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-eyebrow">Saisie & gestion</div>
+    <h1>Les <em>formulaires</em></h1>
+    <p>Chaque action de gestion passe par un formulaire. Remplissez-le et le système fait le reste.</p>
+    </div>
+    <div style="position:absolute; top:18px; right:40px; z-index:10;">
+    <a href="https://script.google.com/macros/s/AKfycbwf0gqajxsdgP3gANQhE-10aKcQN82BFpnUNAEFimuUIVf6cNqbaXSbttnHsz2EEIH_0g/exec?action=guide"
+      target="_blank"
+      style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.5); text-decoration:none;"
+      onmouseover="this.style.color='#F5C020'"
+      onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+      📲 Guide d'installation →
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <div class="info-box" style="margin-bottom:40px">
+    <div class="info-box-icon">💡</div>
+    <div>Cliquez sur <strong>« Ouvrir le formulaire »</strong> pour accéder directement à la saisie. Le formulaire s'ouvre dans un nouvel onglet — cette page reste accessible.</div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-eyebrow">Inscriptions</div>
+    <h2>Enregistrer un enfant, un parrain ou un membre</h2>
+    <p>Ces formulaires alimentent automatiquement les listes déroulantes de tous les autres formulaires.</p>
+  </div>
+
+  <div class="form-grid">
+    <div class="form-card">
+      <div class="form-icon" style="background:var(--bleu-clair)">👶</div>
+      <span class="form-tag tag-form">📋 Formulaire</span>
+      <h3>Nouvel enfant</h3>
+      <p>Enregistrer un enfant dans le système. Un <strong>identifiant unique</strong> lui est attribué automatiquement.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfgEVKnDZ9cNK7AWOvVbLJqoD6du5AG9-UCNJQ21F86O91XVQ/viewform" target="_blank" class="form-btn btn-bleu">Ouvrir le formulaire →</a>
+    </div>
+    <div class="form-card">
+      <div class="form-icon" style="background:var(--vert-clair)">🤝</div>
+      <span class="form-tag tag-form">📋 Formulaire</span>
+      <h3>Nouveau parrain</h3>
+      <p>Enregistrer un nouveau parrain ou marraine. Un <strong>identifiant unique</strong> lui est attribué automatiquement.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLScbcWpcD6sSsPpRq3Wk7Z_JyL3ScNUP3rIFg-XLo340ohsjyQ/viewform" target="_blank" class="form-btn btn-vert">Ouvrir le formulaire →</a>
+    </div>
+    <div class="form-card">
+      <div class="form-icon" style="background:var(--orange-clair)">🔗</div>
+      <span class="form-tag tag-auto">⚡ Déclenche le suivi</span>
+      <h3>Nouveau parrainage</h3>
+      <p>Associer un enfant à un parrain. Le suivi des cotisations <strong>démarre immédiatement</strong>.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLScZuK5dXjeblqOJxiPTOk2Y9TJUhF4XKAld9hrYq6T1YHNsnw/viewform" target="_blank" class="form-btn btn-orange">Ouvrir le formulaire →</a>
+    </div>
+    <div class="form-card">
+      <div class="form-icon" style="background:var(--bleu-clair)">👤</div>
+      <span class="form-tag tag-form">📋 Formulaire</span>
+      <h3>Nouveau membre</h3>
+      <p>Enregistrer un membre de l'association. Il sera inclus dans les <strong>appels à cotisation annuelle</strong>.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdfQ2dVu8wh4ZOmam12ICgALoQNc5xyITEMNQCxWb5NICKH3Q/viewform" target="_blank" class="form-btn btn-bleu">Ouvrir le formulaire →</a>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <div class="section-eyebrow">Suivi des parrainages</div>
+    <h2>Entretiens et clôture de parrainages</h2>
+    <p>Ces formulaires alimentent le process de suivi et génèrent les comptes-rendus automatiquement.</p>
+  </div>
+
+  <div class="form-grid">
+    <div class="form-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+        <div class="form-icon" style="background:var(--jaune-clair)">🗣️</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="form-tag tag-form">📋 Formulaire</span>
+          <span class="form-tag tag-auto">⚡ Génère le CR auto</span>
+        </div>
+      </div>
+      <h3>Entretien de suivi</h3>
+      <p>Enregistrer un entretien avec un enfant. Le <strong>compte-rendu est généré</strong> et envoyé pour validation automatiquement.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSf66BEVkqPHlVugCLLmDH4cJGdaGMf3rCaxpSbSs9fARI7o2g/viewform" target="_blank" class="form-btn btn-jaune">Ouvrir le formulaire →</a>
+    </div>
+    <div class="form-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <div class="form-icon" style="background:var(--rouge-clair)">🔚</div>
+        <span class="form-tag tag-form">📋 Formulaire</span>
+      </div>
+      <h3>Fin de parrainage</h3>
+      <p>Clôturer un parrainage. Le statut passe automatiquement à <strong>Terminé</strong>. L'enfant est libéré pour un nouveau parrainage.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfAtt8hwVHWPI8nyjVd4-eXINQN8FLSkxLb5X7IulGmXYdktA/viewform" target="_blank" class="form-btn btn-rouge">Ouvrir le formulaire →</a>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <div class="section-eyebrow">Paiements</div>
+    <h2>Saisie des paiements hors HelloAsso</h2>
+    <p>Pour les virements, chèques et espèces uniquement. Les paiements HelloAsso sont synchronisés automatiquement.</p>
+  </div>
+
+  <div class="form-grid" style="grid-template-columns:minmax(260px,420px)">
+    <div class="form-card">
+      <div class="form-icon" style="background:var(--vert-clair)">💰</div>
+      <span class="form-tag tag-manuel">✏️ Manuel</span>
+      <h3>Paiement manuel</h3>
+      <p>Enregistrer un paiement reçu hors HelloAsso (virement, chèque, espèces). Le <strong>suivi est mis à jour automatiquement</strong>. L'email du payeur est résolu automatiquement.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdf9GVyx0FWDYfeDW2i15LBGyCC5eEAEs9ncTlkRjRQtqwYGQ/viewform" target="_blank" class="form-btn btn-vert">Ouvrir le formulaire →</a>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

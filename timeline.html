@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Process — Les Enfants de Pondypatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bleu:        #2E7FA8;
+    --bleu-fonce:  #1B5570;
+    --bleu-clair:  #EBF5FB;
+    --orange:      #E8502A;
+    --orange-clair:#FDF0EB;
+    --jaune:       #F5C020;
+    --jaune-clair: #FEF8E7;
+    --rouge:       #C0392B;
+    --rouge-clair: #FDECEA;
+    --vert:        #27AE60;
+    --vert-clair:  #E9F7EF;
+    --violet:      #7B4E9E;
+    --violet-clair:#F3EEF9;
+    --bg:          #F8F6F2;
+    --surface:     #FFFFFF;
+    --surface2:    #F2EDE6;
+    --border:      rgba(46,127,168,0.12);
+    --border-dark: rgba(46,127,168,0.22);
+    --texte:       #1A3444;
+    --muted:       #7A9AAD;
+    --webapp: 'https://script.google.com/macros/s/AKfycbwf0gqajxsdgP3gANQhE-10aKcQN82BFpnUNAEFimuUIVf6cNqbaXSbttnHsz2EEIH_0g/exec?action=timeline';
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--texte); min-height: 100vh; font-size: 15px; line-height: 1.7; }
+
+  
+
+  /* ── HEADER ── */
+  header { background: var(--bleu-fonce); padding: 52px 56px 44px; position: relative; overflow: hidden; }
+  header::before { content: ''; position: absolute; top: -60px; right: -80px; width: 380px; height: 380px; background: radial-gradient(circle, rgba(245,192,32,0.18) 0%, transparent 65%); pointer-events: none; }
+  header::after  { content: ''; position: absolute; bottom: -50px; left: 30%; width: 240px; height: 240px; background: radial-gradient(circle, rgba(232,80,42,0.12) 0%, transparent 65%); pointer-events: none; }
+  .header-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: var(--jaune); margin-bottom: 14px; opacity: 0.9; }
+  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(30px, 5vw, 54px); font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 14px; }
+  header h1 em { color: var(--jaune); font-style: italic; }
+  header p { color: rgba(255,255,255,0.65); font-size: 15px; font-weight: 300; max-width: 500px; line-height: 1.7; }
+
+  /* ── LEGEND ── */
+  .legend { display: flex; flex-wrap: wrap; gap: 20px; padding: 16px 56px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── CALENDAR ── */
+  .cal-wrap { position: sticky; top: 0; z-index: 100; background: var(--bleu-fonce); box-shadow: 0 3px 20px rgba(27,85,112,0.25); }
+  .cal-periods { display: grid; grid-template-columns: repeat(12, 1fr); max-width: 1300px; margin: 0 auto; padding: 8px 56px 0; }
+  .cpl { font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; text-align: center; padding-bottom: 6px; }
+  .cpl-s1   { color: rgba(245,192,32,0.8);  border-bottom: 1px dashed rgba(245,192,32,0.35); }
+  .cpl-s2   { color: rgba(39,174,96,0.8);   border-bottom: 1px dashed rgba(39,174,96,0.35); }
+  .cpl-none { border-bottom: 1px dashed rgba(255,255,255,0.08); }
+  .cal-bar  { display: grid; grid-template-columns: repeat(12, 1fr); max-width: 1300px; margin: 0 auto; padding: 0 56px; }
+  .cal-month { padding: 10px 4px 8px; text-align: center; cursor: pointer; border-right: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; user-select: none; }
+  .cal-month:last-child { border-right: none; }
+  .cal-month:hover { background: rgba(255,255,255,0.06); }
+  .cal-month.flashing { background: rgba(245,192,32,0.12); transition: none; }
+  .cal-month-name { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 6px; }
+  .cal-month.s1    .cal-month-name { color: rgba(245,192,32,0.85); }
+  .cal-month.s2    .cal-month-name { color: rgba(107,221,179,0.9); }
+  .cal-month.pivot .cal-month-name { color: #fff; }
+  .cal-month::after { content: ''; display: block; height: 3px; border-radius: 2px; margin-top: 6px; }
+  .cal-month.s1::after    { background: rgba(245,192,32,0.5); }
+  .cal-month.s2::after    { background: rgba(39,174,96,0.5); }
+  .cal-month.pivot::after { background: var(--orange); }
+  .cal-dots { display: flex; justify-content: center; gap: 3px; min-height: 7px; }
+  .cal-dot  { width: 5px; height: 5px; border-radius: 50%; }
+
+  /* ── MAIN ── */
+  main { max-width: 1040px; margin: 0 auto; padding: 52px 56px 72px; }
+
+  .filters { display: flex; gap: 10px; margin-bottom: 44px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; padding: 9px 20px; border-radius: 50px; border: 2px solid var(--border-dark); background: var(--surface); color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { border-color: var(--bleu); color: var(--bleu); }
+  .filter-btn.active { background: var(--bleu); color: #fff; border-color: var(--bleu); box-shadow: 0 4px 16px rgba(46,127,168,0.3); }
+
+  .section-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--bleu-fonce); margin-bottom: 24px; margin-top: 12px; display: flex; align-items: center; gap: 14px; scroll-margin-top: 110px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .st-pill { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; }
+  .st-bleu   { background: var(--bleu-clair);   color: var(--bleu); }
+  .st-vert   { background: var(--vert-clair);   color: var(--vert); }
+  .st-jaune  { background: var(--jaune-clair);  color: #B8860B; }
+  .st-orange { background: var(--orange-clair); color: var(--orange); }
+  .st-rouge  { background: var(--rouge-clair);  color: var(--rouge); }
+  .st-violet { background: var(--violet-clair); color: var(--violet); }
+
+  .timeline { position: relative; padding-left: 68px; margin-bottom: 52px; }
+  .timeline-rail { position: absolute; left: 24px; top: 32px; bottom: 32px; width: 2px; background: linear-gradient(to bottom, var(--jaune) 0%, var(--bleu) 30%, var(--orange) 60%, var(--vert) 100%); opacity: 0.25; }
+
+  .tl-item { position: relative; margin-bottom: 20px; opacity: 0; transform: translateX(-14px); animation: slideIn 0.45s cubic-bezier(.22,.68,0,1.2) forwards; }
+  .tl-item:nth-child(2){animation-delay:.06s} .tl-item:nth-child(3){animation-delay:.12s}
+  .tl-item:nth-child(4){animation-delay:.18s} .tl-item:nth-child(5){animation-delay:.24s}
+  .tl-item:nth-child(6){animation-delay:.30s} .tl-item:nth-child(7){animation-delay:.36s}
+  .tl-item:nth-child(8){animation-delay:.42s}
+
+  .tl-dot { position: absolute; left: -53px; top: 18px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 3px solid var(--bg); z-index: 1; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+  .dot-bleu   { background: var(--bleu); }
+  .dot-jaune  { background: var(--jaune); }
+  .dot-orange { background: var(--orange); }
+  .dot-vert   { background: var(--vert); }
+  .dot-rouge  { background: var(--rouge); }
+  .dot-violet { background: var(--violet); }
+
+  .tl-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 20px 24px; display: flex; gap: 18px; align-items: flex-start; transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; cursor: default; }
+  .tl-card:hover { box-shadow: 0 6px 28px rgba(46,127,168,0.12); transform: translateX(5px); }
+  .accent-bleu   { border-left: 4px solid var(--bleu); }
+  .accent-jaune  { border-left: 4px solid var(--jaune); }
+  .accent-orange { border-left: 4px solid var(--orange); }
+  .accent-vert   { border-left: 4px solid var(--vert); }
+  .accent-rouge  { border-left: 4px solid var(--rouge); }
+  .accent-violet { border-left: 4px solid var(--violet); }
+
+  .tl-main { flex: 1; }
+  .tl-period { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .tl-title  { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--texte); margin-bottom: 7px; line-height: 1.3; }
+  .tl-desc   { font-size: 14px; color: #5A7A8A; line-height: 1.75; font-weight: 400; }
+  .tl-desc strong { color: var(--texte); font-weight: 600; }
+
+  .tl-badges { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; min-width: 96px; padding-top: 2px; }
+
+  .badge { display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
+  .badge-auto    { background: var(--vert-clair);   color: var(--vert);   border: 1.5px solid rgba(39,174,96,0.25); }
+  .badge-manuel  { background: var(--jaune-clair);  color: #B8860B;       border: 1.5px solid rgba(245,192,32,0.35); }
+  .badge-form    { background: var(--bleu-clair);   color: var(--bleu);   border: 1.5px solid rgba(46,127,168,0.25); }
+  .badge-email   { background: var(--violet-clair); color: var(--violet); border: 1.5px solid rgba(123,78,158,0.25); }
+  .badge-monthly { background: var(--orange-clair); color: var(--orange); border: 1.5px solid rgba(232,80,42,0.25); }
+
+  .form-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; background: var(--bleu-clair); color: var(--bleu); border: 1.5px solid rgba(46,127,168,0.2); border-radius: 8px; padding: 4px 10px; margin: 5px 5px 0 0; }
+
+  .tl-form-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; padding: 9px 16px; border-radius: 8px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s; border: none; }
+  .tl-form-btn-bleu   { background: var(--bleu);   color: #fff; box-shadow: 0 3px 10px rgba(46,127,168,0.3); }
+  .tl-form-btn-bleu:hover   { background: var(--bleu-fonce); transform: translateY(-1px); }
+  .tl-form-btn-orange { background: var(--orange);  color: #fff; box-shadow: 0 3px 10px rgba(232,80,42,0.3); }
+  .tl-form-btn-orange:hover { background: #c74020; transform: translateY(-1px); }
+  .tl-form-btn-jaune  { background: var(--jaune);   color: var(--bleu-fonce); box-shadow: 0 3px 10px rgba(245,192,32,0.3); }
+  .tl-form-btn-jaune:hover  { background: #d4a510; transform: translateY(-1px); }
+  .tl-form-btn-vert   { background: var(--vert);    color: #fff; box-shadow: 0 3px 10px rgba(39,174,96,0.3); }
+  .tl-form-btn-vert:hover   { background: #1e8c4e; transform: translateY(-1px); }
+  .tl-form-btn-violet { background: var(--violet);  color: #fff; box-shadow: 0 3px 10px rgba(123,78,158,0.3); }
+  .tl-form-btn-violet:hover { background: #653e86; transform: translateY(-1px); }
+  .tl-form-btn-rouge  { background: var(--rouge);   color: #fff; box-shadow: 0 3px 10px rgba(192,57,43,0.3); }
+  .tl-form-btn-rouge:hover  { background: #a93226; transform: translateY(-1px); }
+
+  @keyframes slideIn { to { opacity:1; transform:translateX(0); } }
+
+  @media (max-width: 720px) {
+    
+    header, main { padding-left: 20px; padding-right: 20px; }
+    .legend { padding-left: 20px; padding-right: 20px; }
+    .cal-bar, .cal-periods { padding-left: 8px; padding-right: 8px; }
+    .cal-month-name { font-size: 9px; }
+    .tl-badges { display: none; }
+    .timeline { padding-left: 50px; }
+    .section-title { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-eyebrow">Process annuel de gestion</div>
+  <h1>Les Enfants de<br><em>Pondypatch</em></h1>
+  <p>Timeline complète — automatisations, actions manuelles et formulaires sur 12 mois.</p>
+</header>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--vert)"></div> Automatique</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--jaune)"></div> Action manuelle</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--bleu)"></div> Formulaire</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--violet)"></div> Email automatique</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Récurrent mensuel</div>
+</div>
+
+<!-- CALENDAR BAR sticky -->
+<div class="cal-wrap">
+  <div class="cal-periods">
+    <div class="cpl cpl-none"></div>
+    <div class="cpl cpl-s1" style="grid-column:span 5">Semestre 1</div>
+    <div class="cpl cpl-none"></div>
+    <div class="cpl cpl-s2" style="grid-column:span 5">Semestre 2</div>
+  </div>
+  <div class="cal-bar" id="calBar"></div>
+</div>
+
+<main>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterItems('all',this)">Tout afficher</button>
+    <button class="filter-btn" onclick="filterItems('manuel',this)">✏️ Actions manuelles</button>
+    <button class="filter-btn" onclick="filterItems('auto',this)">⚡ Automatisations</button>
+    <button class="filter-btn" onclick="filterItems('form',this)">📋 Formulaires</button>
+    <button class="filter-btn" onclick="filterItems('email',this)">📧 Emails auto</button>
+  </div>
+
+  <!-- JANVIER -->
+  <div class="section-title" id="anchor-jan"><span class="st-pill st-jaune">Janvier</span> Début d'année</div>
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+    <div class="tl-item" data-type="manuel" data-months="1">
+      <div class="tl-dot dot-orange">✏️</div>
+      <div class="tl-card accent-orange">
+        <div class="tl-main">
+          <div class="tl-period">Janvier — action requise</div>
+          <div class="tl-title">Créer les campagnes HelloAsso</div>
+          <div class="tl-desc">Créer <strong>« Parrainages S1 AAAA »</strong> et <strong>« Adhésion AAAA »</strong> sur HelloAsso. Respecter exactement ces titres — un email de rappel vous guidera automatiquement.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-manuel">✏️ Manuel</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="email" data-months="1">
+      <div class="tl-dot dot-violet">📧</div>
+      <div class="tl-card accent-violet">
+        <div class="tl-main">
+          <div class="tl-period">Dès la campagne créée</div>
+          <div class="tl-title">Appel de cotisation semestrielle → Parrains</div>
+          <div class="tl-desc">Envoyé automatiquement à tous les parrains actifs à l'ouverture de la campagne HelloAsso parrainage.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-email">📧 Email</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="email" data-months="1">
+      <div class="tl-dot dot-violet">📧</div>
+      <div class="tl-card accent-violet">
+        <div class="tl-main">
+          <div class="tl-period">Dès la campagne créée</div>
+          <div class="tl-title">Appel de cotisation annuelle → Membres</div>
+          <div class="tl-desc">Envoyé automatiquement à tous les membres à l'ouverture de la campagne HelloAsso adhésion.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-email">📧 Email</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAN → JUIN -->
+  <div class="section-title" id="anchor-s1"><span class="st-pill st-bleu">Jan → Juin</span> Semestre 1 — suivi en continu</div>
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+    <div class="tl-item" data-type="auto" data-months="1,2,3,4,5,6">
+      <div class="tl-dot dot-vert">⚡</div>
+      <div class="tl-card accent-vert">
+        <div class="tl-main">
+          <div class="tl-period">Chaque nuit — Janvier à Juin</div>
+          <div class="tl-title">Synchronisation des paiements HelloAsso</div>
+          <div class="tl-desc">Les paiements reçus via HelloAsso sont importés automatiquement chaque nuit dans l'onglet <strong>helloasso-s1</strong>. Le tableau de suivi se met à jour sans intervention.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="email" data-months="1,2,3,4,5,6">
+      <div class="tl-dot dot-orange">📧</div>
+      <div class="tl-card accent-orange">
+        <div class="tl-main">
+          <div class="tl-period">Automatique — max 1× / 14 jours par parrain</div>
+          <div class="tl-title">Relance cotisation impayée → Parrains en retard</div>
+          <div class="tl-desc">Envoyé automatiquement si aucun paiement reçu. Le système limite à une relance tous les 14 jours par parrain.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-email">📧 Email</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="email" data-months="1,2,3,4,5,6">
+      <div class="tl-dot dot-orange">📊</div>
+      <div class="tl-card accent-orange">
+        <div class="tl-main">
+          <div class="tl-period">Chaque mois — Janvier à Juin</div>
+          <div class="tl-title">Récapitulatif mensuel des impayés → Direction</div>
+          <div class="tl-desc">Résumé de tous les parrains en retard avec <strong>boutons de relance directe</strong>. Relancez en un clic ou individuellement depuis le dashboard.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-monthly">📅 Mensuel</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="form" data-months="1,2,3,4,5,6">
+      <div class="tl-dot dot-bleu">📋</div>
+      <div class="tl-card accent-bleu">
+        <div class="tl-main">
+          <div class="tl-period">À tout moment dans le semestre</div>
+          <div class="tl-title">Saisir les paiements hors HelloAsso</div>
+          <div class="tl-desc">Pour tout paiement par virement ou chèque. Le suivi se met à jour automatiquement.</div>
+          <div style="margin-top:10px"><span class="form-chip">💰 Paiement manuel</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdf9GVyx0FWDYfeDW2i15LBGyCC5eEAEs9ncTlkRjRQtqwYGQ/viewform" target="_blank" class="tl-form-btn tl-form-btn-vert">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-manuel">✏️ Manuel</span><span class="badge badge-form">📋 Form</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOUTE L'ANNÉE -->
+  <div class="section-title" id="anchor-annee"><span class="st-pill st-violet">Toute l'année</span> Actions ponctuelles</div>
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+    <div class="tl-item" data-type="form" data-months="1,2,3,4,5,6,7,8,9,10,11,12">
+      <div class="tl-dot dot-bleu">👶</div>
+      <div class="tl-card accent-bleu">
+        <div class="tl-main">
+          <div class="tl-period">À l'arrivée d'un enfant</div>
+          <div class="tl-title">Enregistrer un nouvel enfant</div>
+          <div class="tl-desc">Un identifiant unique lui est attribué automatiquement à l'enregistrement.</div>
+          <div style="margin-top:10px"><span class="form-chip">👶 Nouvel enfant</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSfgEVKnDZ9cNK7AWOvVbLJqoD6du5AG9-UCNJQ21F86O91XVQ/viewform" target="_blank" class="tl-form-btn tl-form-btn-bleu">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-form">📋 Form</span><span class="badge badge-auto">⚡ Auto ID</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="form" data-months="1,2,3,4,5,6,7,8,9,10,11,12">
+      <div class="tl-dot dot-bleu">🤝</div>
+      <div class="tl-card accent-bleu">
+        <div class="tl-main">
+          <div class="tl-period">À l'arrivée d'un parrain / marraine</div>
+          <div class="tl-title">Enregistrer un nouveau parrain</div>
+          <div class="tl-desc">Les listes déroulantes de tous les formulaires du système sont mises à jour automatiquement.</div>
+          <div style="margin-top:10px"><span class="form-chip">🤝 Nouveau parrain</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLScbcWpcD6sSsPpRq3Wk7Z_JyL3ScNUP3rIFg-XLo340ohsjyQ/viewform" target="_blank" class="tl-form-btn tl-form-btn-bleu">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-form">📋 Form</span><span class="badge badge-auto">⚡ Listes auto</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="form" data-months="1,2,3,4,5,6,7,8,9,10,11,12">
+      <div class="tl-dot dot-bleu">🔗</div>
+      <div class="tl-card accent-bleu">
+        <div class="tl-main">
+          <div class="tl-period">À la création d'un parrainage</div>
+          <div class="tl-title">Associer un enfant à un parrain</div>
+          <div class="tl-desc">Le suivi des cotisations démarre immédiatement. Le statut <strong>Ongoing</strong> est activé automatiquement.</div>
+          <div style="margin-top:10px"><span class="form-chip">🔗 Nouveau parrainage</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLScZuK5dXjeblqOJxiPTOk2Y9TJUhF4XKAld9hrYq6T1YHNsnw/viewform" target="_blank" class="tl-form-btn tl-form-btn-orange">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-form">📋 Form</span><span class="badge badge-auto">⚡ Suivi auto</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="form" data-months="1,2,3,4,5,6,7,8,9,10,11,12">
+      <div class="tl-dot dot-jaune">🗣️</div>
+      <div class="tl-card accent-jaune">
+        <div class="tl-main">
+          <div class="tl-period">Après chaque entretien</div>
+          <div class="tl-title">Enregistrer un entretien de suivi</div>
+          <div class="tl-desc">Le CR est <strong>généré automatiquement</strong> et une notification est envoyée à la Direction pour validation.</div>
+          <div style="margin-top:10px"><span class="form-chip">🗣️ Entretien de suivi</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSf66BEVkqPHlVugCLLmDH4cJGdaGMf3rCaxpSbSs9fARI7o2g/viewform" target="_blank" class="tl-form-btn tl-form-btn-jaune">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-form">📋 Form</span><span class="badge badge-auto">⚡ CR auto</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="email" data-months="1,2,3,4,5,6,7,8,9,10,11,12">
+      <div class="tl-dot dot-violet">📧</div>
+      <div class="tl-card accent-violet">
+        <div class="tl-main">
+          <div class="tl-period">Après génération du CR</div>
+          <div class="tl-title">Notification de CR à valider → Direction</div>
+          <div class="tl-desc">Envoyé automatiquement avec un <strong>lien de validation direct</strong> dans l'email.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-email">📧 Email</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="form" data-months="1,2,3,4,5,6,7,8,9,10,11,12">
+      <div class="tl-dot dot-rouge">🔚</div>
+      <div class="tl-card accent-rouge">
+        <div class="tl-main">
+          <div class="tl-period">En fin de parrainage</div>
+          <div class="tl-title">Clôturer un parrainage</div>
+          <div class="tl-desc">Le statut passe de <strong>Ongoing → Archivé</strong>. L'enfant est libéré pour un nouveau parrainage potentiel.</div>
+          <div style="margin-top:10px"><span class="form-chip">🔚 Fin de parrainage</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSfAtt8hwVHWPI8nyjVd4-eXINQN8FLSkxLb5X7IulGmXYdktA/viewform" target="_blank" class="tl-form-btn tl-form-btn-rouge">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-form">📋 Form</span><span class="badge badge-auto">⚡ Statut auto</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="form" data-months="1,2,3,4,5,6,7,8,9,10,11,12">
+      <div class="tl-dot dot-bleu">👤</div>
+      <div class="tl-card accent-bleu">
+        <div class="tl-main">
+          <div class="tl-period">À l'arrivée d'un membre</div>
+          <div class="tl-title">Enregistrer un nouveau membre</div>
+          <div class="tl-desc">Inclus automatiquement dans les prochains appels à cotisation annuelle.</div>
+          <div style="margin-top:10px"><span class="form-chip">👤 Nouveau membre</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdfQ2dVu8wh4ZOmam12ICgALoQNc5xyITEMNQCxWb5NICKH3Q/viewform" target="_blank" class="tl-form-btn tl-form-btn-bleu">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-form">📋 Form</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JUILLET -->
+  <div class="section-title" id="anchor-jul"><span class="st-pill st-jaune">Juillet</span> Début semestre 2</div>
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+    <div class="tl-item" data-type="manuel" data-months="7">
+      <div class="tl-dot dot-orange">✏️</div>
+      <div class="tl-card accent-orange">
+        <div class="tl-main">
+          <div class="tl-period">Juillet — action requise</div>
+          <div class="tl-title">Créer la campagne S2 HelloAsso</div>
+          <div class="tl-desc">Créer <strong>« Parrainages S2 AAAA »</strong> sur HelloAsso. Les emails partent automatiquement aux parrains actifs.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-manuel">✏️ Manuel</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="email" data-months="7">
+      <div class="tl-dot dot-violet">📧</div>
+      <div class="tl-card accent-violet">
+        <div class="tl-main">
+          <div class="tl-period">Dès la campagne S2 créée</div>
+          <div class="tl-title">Appel de cotisation S2 → Parrains</div>
+          <div class="tl-desc">Envoyé automatiquement à tous les parrains actifs à l'ouverture de la campagne S2.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-email">📧 Email</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JUIL → DÉC -->
+  <div class="section-title" id="anchor-s2"><span class="st-pill st-vert">Juil → Déc</span> Semestre 2 — suivi en continu</div>
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+    <div class="tl-item" data-type="auto" data-months="7,8,9,10,11,12">
+      <div class="tl-dot dot-vert">⚡</div>
+      <div class="tl-card accent-vert">
+        <div class="tl-main">
+          <div class="tl-period">Chaque nuit — Juillet à Décembre</div>
+          <div class="tl-title">Synchronisation des paiements S2</div>
+          <div class="tl-desc">Même fonctionnement qu'au S1. Paiements importés chaque nuit dans l'onglet <strong>helloasso-s2</strong>.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="email" data-months="7,8,9,10,11,12">
+      <div class="tl-dot dot-orange">📊</div>
+      <div class="tl-card accent-orange">
+        <div class="tl-main">
+          <div class="tl-period">Chaque mois — Juillet à Décembre</div>
+          <div class="tl-title">Récapitulatif mensuel des impayés → Direction</div>
+          <div class="tl-desc">Même fonctionnement qu'au S1. Résumé des impayés avec boutons de relance directe.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-monthly">📅 Mensuel</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-type="form" data-months="7,8,9,10,11,12">
+      <div class="tl-dot dot-bleu">📋</div>
+      <div class="tl-card accent-bleu">
+        <div class="tl-main">
+          <div class="tl-period">À tout moment dans le semestre</div>
+          <div class="tl-title">Saisir les paiements hors HelloAsso</div>
+          <div class="tl-desc">Pour tout paiement par virement ou chèque. Le suivi se met à jour automatiquement.</div>
+          <div style="margin-top:10px"><span class="form-chip">💰 Paiement manuel</span></div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdf9GVyx0FWDYfeDW2i15LBGyCC5eEAEs9ncTlkRjRQtqwYGQ/viewform" target="_blank" class="tl-form-btn tl-form-btn-vert">Ouvrir le formulaire →</a>
+        </div>
+        <div class="tl-badges"><span class="badge badge-manuel">✏️ Manuel</span><span class="badge badge-form">📋 Form</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAPPELS -->
+  <div class="section-title" id="anchor-rappels"><span class="st-pill st-violet">Rappels système</span> Emails de guidance automatiques</div>
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+    <div class="tl-item" data-type="email" data-months="1,7">
+      <div class="tl-dot dot-violet">🔔</div>
+      <div class="tl-card accent-violet">
+        <div class="tl-main">
+          <div class="tl-period">Janvier &amp; Juillet</div>
+          <div class="tl-title">Rappel de création de campagne → Direction</div>
+          <div class="tl-desc">Rappel automatique avec les <strong>titres exacts à utiliser</strong> et les instructions complètes.</div>
+        </div>
+        <div class="tl-badges"><span class="badge badge-auto">⚡ Auto</span><span class="badge badge-email">📧 Email</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+const eventMonths = {};
+document.querySelectorAll('.tl-item[data-months]').forEach(item => {
+  item.getAttribute('data-months').split(',').forEach(m => {
+    const n = parseInt(m.trim());
+    if (!eventMonths[n]) eventMonths[n] = new Set();
+    eventMonths[n].add(item.getAttribute('data-type'));
+  });
+});
+const typeColor = { auto:'#27AE60', manuel:'#F5C020', form:'#2E7FA8', email:'#7B4E9E' };
+const monthAnchors = { 1:'anchor-jan',2:'anchor-s1',3:'anchor-s1',4:'anchor-s1',5:'anchor-s1',6:'anchor-s1',7:'anchor-jul',8:'anchor-s2',9:'anchor-s2',10:'anchor-s2',11:'anchor-s2',12:'anchor-s2' };
+const calBar = document.getElementById('calBar');
+MONTHS.forEach((name, i) => {
+  const n = i + 1;
+  const isPivot = (n === 1 || n === 7);
+  const cls = isPivot ? 'pivot' : (n <= 6 ? 's1' : 's2');
+  const types = eventMonths[n] ? [...eventMonths[n]] : [];
+  const dotsHTML = types.map(t => `<div class="cal-dot" style="background:${typeColor[t]}"></div>`).join('');
+  const div = document.createElement('div');
+  div.className = `cal-month ${cls}`;
+  div.innerHTML = `<span class="cal-month-name">${name}</span><div class="cal-dots">${dotsHTML}</div>`;
+  div.addEventListener('click', () => {
+    const anchor = monthAnchors[n];
+    if (anchor) document.getElementById(anchor).scrollIntoView({ behavior:'smooth', block:'start' });
+    div.classList.add('flashing');
+    setTimeout(() => div.classList.remove('flashing'), 700);
+  });
+  calBar.appendChild(div);
+});
+function filterItems(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tl-item').forEach(item => {
+    item.style.display = (type === 'all' || item.getAttribute('data-type') === type) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

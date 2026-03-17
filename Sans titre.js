@@ -1,0 +1,3 @@
+function testAuth() {
+  FormApp.getActiveForm();
+}

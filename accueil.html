@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accueil — Les Enfants de Pondypatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Nunito', sans-serif; background: #F8F6F2; color: #1A3444; line-height: 1.7; }
+
+  .hero { background: #1B5570; padding: 64px 56px 56px; position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; top:-80px; right:-80px; width:400px; height:400px; background: radial-gradient(circle, rgba(245,192,32,0.15) 0%, transparent 65%); }
+  .hero::after  { content:''; position:absolute; bottom:-60px; left:25%; width:300px; height:300px; background: radial-gradient(circle, rgba(232,80,42,0.1) 0%, transparent 65%); }
+  .hero-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; display: flex; align-items: center; gap: 48px; }
+  .hero-text { flex: 1; }
+  .hero-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #F5C020; margin-bottom: 14px; opacity: 0.9; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 58px); font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 em { color: #F5C020; font-style: italic; }
+  .hero p { color: rgba(255,255,255,0.65); font-size: 16px; font-weight: 300; max-width: 460px; line-height: 1.75; }
+  .hero-badge { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 20px 28px; text-align: center; flex-shrink: 0; min-width: 160px; }
+  .hero-badge-num { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; color: #F5C020; line-height: 1; display: block; }
+  .hero-badge-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; display: block; }
+
+  .topbar-guide { position: absolute; top: 18px; right: 40px; z-index: 10; }
+  .topbar-guide a { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
+  .topbar-guide a:hover { color: #F5C020; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 52px 40px 72px; }
+
+  .section-header { margin-bottom: 28px; }
+  .section-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #2E7FA8; margin-bottom: 6px; }
+  .section-header h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1B5570; }
+  .section-header p { color: #7A9AAD; font-size: 14px; margin-top: 6px; }
+
+  .nav-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 56px; }
+
+  .nav-card {
+    background: #FFFFFF; border: 1.5px solid rgba(46,127,168,0.12);
+    border-radius: 16px; padding: 28px 24px;
+    color: #1A3444; display: flex; flex-direction: column; gap: 12px;
+    transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+    text-decoration: none; cursor: pointer;
+  }
+  .nav-card:hover { box-shadow: 0 8px 32px rgba(46,127,168,0.15); transform: translateY(-4px); border-color: #2E7FA8; }
+
+  .nav-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .nav-card h3 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #1B5570; line-height: 1.2; }
+  .nav-card p { font-size: 13px; color: #7A9AAD; line-height: 1.6; flex: 1; }
+  .nav-arrow { font-size: 13px; font-weight: 700; color: #2E7FA8; margin-top: 4px; }
+
+  .stat-band { background: #1B5570; border-radius: 18px; padding: 32px 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 24px; margin-bottom: 56px; }
+  .stat-item { text-align: center; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 900; color: #F5C020; display: block; line-height: 1; }
+  .stat-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; display: block; }
+
+  .divider { height: 1px; background: linear-gradient(to right, transparent, rgba(46,127,168,0.12), transparent); margin: 48px 0; }
+
+  .actions-section { margin-bottom: 56px; }
+  .action-list { display: flex; flex-direction: column; gap: 14px; }
+  .action-item { background: #FFFFFF; border: 1.5px solid rgba(46,127,168,0.12); border-radius: 14px; padding: 20px 24px; display: flex; align-items: flex-start; gap: 18px; transition: box-shadow 0.2s; }
+  .action-item:hover { box-shadow: 0 4px 20px rgba(46,127,168,0.1); }
+  .action-num { width: 38px; height: 38px; background: #1B5570; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+  .action-body { flex: 1; }
+  .action-body strong { font-size: 15px; font-weight: 700; color: #1A3444; display: block; margin-bottom: 4px; }
+  .action-body span { font-size: 13px; color: #7A9AAD; line-height: 1.6; }
+  .action-when { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; align-self: center; }
+  .when-jaune { background: #FEF8E7; color: #9A7200; }
+  .when-vert  { background: #E9F7EF; color: #27AE60; }
+
+  @media (max-width: 640px) {
+    .hero { padding: 40px 24px; }
+    .hero-inner { flex-direction: column; gap: 28px; }
+    main { padding: 36px 20px; }
+    .stat-band { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="topbar-guide">
+    <a href="https://script.google.com/macros/s/AKfycbwf0gqajxsdgP3gANQhE-10aKcQN82BFpnUNAEFimuUIVf6cNqbaXSbttnHsz2EEIH_0g/exec?action=guide" target="_blank">📲 Guide d'installation →</a>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-eyebrow">Tableau de bord de gestion</div>
+      <h1>Les Enfants de<br><em>Pondypatch</em></h1>
+      <p>Bienvenue sur l'espace de gestion interne de l'association. Retrouvez ici tous les outils, formulaires et process.</p>
+    </div>
+    <div class="hero-badge">
+      <span class="hero-badge-num">7</span>
+      <span class="hero-badge-label">Formulaires<br>disponibles</span>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <div class="section-header">
+    <div class="section-eyebrow">Navigation</div>
+    <h2>Accès rapide aux pages</h2>
+    <p>Cliquez sur une page pour y accéder directement.</p>
+  </div>
+
+  <div class="nav-grid">
+
+    <div class="nav-card">
+      <div class="nav-icon" style="background:#E9F7EF">📋</div>
+      <h3>Formulaires</h3>
+      <p>Accès direct aux 7 formulaires de saisie — enfants, parrains, entretiens, paiements.</p>
+      <a class="nav-arrow" href="https://script.google.com/macros/s/AKfycbwf0gqajxsdgP3gANQhE-10aKcQN82BFpnUNAEFimuUIVf6cNqbaXSbttnHsz2EEIH_0g/exec?action=formulaires" target="_blank" style="text-decoration:none;color:#2E7FA8">Accéder →</a>
+    </div>
+
+    <div class="nav-card">
+      <div class="nav-icon" style="background:#FEF8E7">📊</div>
+      <h3>Tableau de bord</h3>
+      <p>Les onglets clés du Google Sheet — suivi des parrainages, cotisations, membres.</p>
+      <a class="nav-arrow" href="https://script.google.com/macros/s/AKfycbwf0gqajxsdgP3gANQhE-10aKcQN82BFpnUNAEFimuUIVf6cNqbaXSbttnHsz2EEIH_0g/exec?action=dashboard_page" target="_blank" style="text-decoration:none;color:#2E7FA8">Accéder →</a>
+    </div>
+
+    <a href="https://script.google.com/macros/s/AKfycbwf0gqajxsdgP3gANQhE-10aKcQN82BFpnUNAEFimuUIVf6cNqbaXSbttnHsz2EEIH_0g/exec?action=timeline" class="nav-card">
+      <div class="nav-icon" style="background:#EBF5FB">📅</div>
+      <h3>Timeline Process</h3>
+      <p>Le calendrier annuel complet — automatisations et actions manuelles mois par mois.</p>
+      <div class="nav-arrow">Voir la timeline →</div>
+    </a>
+
+    <a href="https://script.google.com/macros/s/AKfycbwf0gqajxsdgP3gANQhE-10aKcQN82BFpnUNAEFimuUIVf6cNqbaXSbttnHsz2EEIH_0g/exec?action=process" class="nav-card">
+      <div class="nav-icon" style="background:#FDF0EB">🔄</div>
+      <h3>Process Parrainage</h3>
+      <p>Les 4 phases détaillées du parrainage — de l'inscription à la clôture.</p>
+      <div class="nav-arrow">Voir le process →</div>
+    </a>
+
+  </div>
+
+  <div class="stat-band">
+    <div class="stat-item"><span class="stat-num">2×</span><span class="stat-label">Campagnes<br>par an</span></div>
+    <div class="stat-item"><span class="stat-num">7</span><span class="stat-label">Formulaires<br>de gestion</span></div>
+    <div class="stat-item"><span class="stat-num">24h</span><span class="stat-label">Synchro<br>automatique</span></div>
+    <div class="stat-item"><span class="stat-num">4</span><span class="stat-label">Actions<br>manuelles/an</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="actions-section">
+    <div class="section-header">
+      <div class="section-eyebrow">Ce que vous devez faire</div>
+      <h2>Les 4 actions manuelles de l'année</h2>
+      <p>Le reste est automatique. Voici les seules interventions humaines indispensables.</p>
+    </div>
+    <div class="action-list">
+      <div class="action-item">
+        <div class="action-num">1</div>
+        <div class="action-body">
+          <strong>Créer les campagnes HelloAsso (2× par an)</strong>
+          <span>En janvier : « Parrainages S1 AAAA » et « Adhésion AAAA ». En juillet : « Parrainages S2 AAAA ». Respecter exactement ces titres — un email de rappel vous guidera.</span>
+        </div>
+        <span class="action-when when-jaune">Jan & Juil</span>
+      </div>
+      <div class="action-item">
+        <div class="action-num">2</div>
+        <div class="action-body">
+          <strong>Valider les comptes-rendus d'entretien</strong>
+          <span>Après chaque entretien de suivi, vous recevez un email avec le CR et un bouton de validation. Cliquez pour envoyer le CR au parrain.</span>
+        </div>
+        <span class="action-when when-vert">Après entretien</span>
+      </div>
+      <div class="action-item">
+        <div class="action-num">3</div>
+        <div class="action-body">
+          <strong>Saisir les paiements reçus hors HelloAsso</strong>
+          <span>Si un parrain ou membre paie par virement, chèque ou espèces, remplissez le formulaire « Paiement manuel ».</span>
+        </div>
+        <span class="action-when when-vert">Au fil de l'eau</span>
+      </div>
+      <div class="action-item">
+        <div class="action-num">4</div>
+        <div class="action-body">
+          <strong>Consulter le récapitulatif mensuel</strong>
+          <span>Chaque mois, vous recevez un email récapitulatif des impayés. Relancez tous les parrains en un clic ou individuellement depuis le tableau de bord.</span>
+        </div>
+        <span class="action-when when-jaune">Chaque mois</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

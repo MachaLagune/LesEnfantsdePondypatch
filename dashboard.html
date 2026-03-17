@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Les Enfants de Pondypatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bleu:        #2E7FA8;
+    --bleu-fonce:  #1B5570;
+    --bleu-clair:  #EBF5FB;
+    --orange:      #E8502A;
+    --orange-clair:#FDF0EB;
+    --jaune:       #F5C020;
+    --jaune-clair: #FEF8E7;
+    --vert:        #27AE60;
+    --vert-clair:  #E9F7EF;
+    --rouge:       #C0392B;
+    --rouge-clair: #FDECEA;
+    --bg:          #F8F6F2;
+    --surface:     #FFFFFF;
+    --border:      rgba(46,127,168,0.12);
+    --texte:       #1A3444;
+    --muted:       #7A9AAD;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--texte);
+    min-height: 100vh;
+  }
+
+  /* ══ TOPBAR ══ */
+  .topbar {
+    background: var(--bleu-fonce);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 14px; }
+  .topbar-logo {
+    width: 38px; height: 38px;
+    background: var(--jaune);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .topbar-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .topbar-title span { color: var(--jaune); font-style: italic; }
+  .topbar-sub { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .last-update { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .refresh-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ══ ZONE LAYOUT ══ */
+  .zone { padding: 32px 40px; border-bottom: 1px solid var(--border); }
+  .zone-global   { background: var(--bleu-fonce); }
+  .zone-annee    { background: var(--surface); }
+  .zone-filtrable{ background: var(--bg); padding-bottom: 48px; }
+
+  /* ══ ZONE HEADER ══ */
+  .zone-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  .zone-label { display: flex; align-items: center; gap: 10px; }
+  .zone-label-pill {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+  }
+  .pill-global    { background: rgba(245,192,32,0.2); color: var(--jaune); }
+  .pill-annee     { background: var(--bleu-clair); color: var(--bleu); }
+  .pill-filtrable { background: var(--vert-clair); color: var(--vert); }
+  .zone-label-text { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; }
+  .zone-global .zone-label-text    { color: #fff; }
+  .zone-annee .zone-label-text     { color: var(--bleu-fonce); }
+  .zone-filtrable .zone-label-text { color: var(--bleu-fonce); }
+
+  /* ══ SCORECARD STRIP ══ */
+  .scorecard-strip { display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch; }
+  .scorecard { display: flex; flex-direction: column; justify-content: flex-start; }
+  .scorecard {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px; padding: 22px 28px; min-width: 150px; flex: 1;
+    transition: transform 0.2s;
+  }
+  .scorecard:hover { transform: translateY(-2px); }
+  .scorecard-light {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 22px 28px; min-width: 140px; flex: 1;
+    box-shadow: 0 2px 12px rgba(46,127,168,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .scorecard-light:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,127,168,0.12); }
+  .sc-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; margin-top: 0; min-height: 30px; display: flex; align-items: flex-start; }
+  .zone-global .sc-label { color: rgba(255,255,255,0.5); }
+  .sc-label-light { color: var(--muted); }
+  .sc-value { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 900; line-height: 1; display: block; margin-bottom: 4px; }
+  .sc-sub { font-size: 12px; font-weight: 500; }
+  .zone-global .sc-sub { color: rgba(255,255,255,0.4); }
+  .sc-sub-light { color: var(--muted); }
+  .val-jaune  { color: var(--jaune); }
+  .val-blanc  { color: #fff; }
+  .val-bleu   { color: var(--bleu); }
+  .val-orange { color: var(--orange); }
+  .val-vert   { color: var(--vert); }
+  .val-rouge  { color: var(--rouge); }
+  .scorecard-light.accent-bleu   { border-top: 4px solid var(--bleu); }
+  .scorecard-light.accent-orange { border-top: 4px solid var(--orange); }
+  .scorecard-light.accent-jaune  { border-top: 4px solid var(--jaune); }
+  .scorecard-light.accent-vert   { border-top: 4px solid var(--vert); }
+  .scorecard-light.accent-rouge  { border-top: 4px solid var(--rouge); }
+
+  /* ══ SÉLECTEUR ══ */
+  .selector-wrap { display: flex; align-items: center; gap: 10px; }
+  .selector-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  select {
+    font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700;
+    color: var(--bleu-fonce); background: var(--surface);
+    border: 2px solid var(--border); border-radius: 10px; padding: 8px 14px;
+    cursor: pointer; outline: none; transition: border-color 0.2s;
+    appearance: none; padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232E7FA8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  select:focus { border-color: var(--bleu); }
+
+  /* filtre statut */
+  .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-pill {
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+    padding: 8px 20px; border-radius: 50px; border: 2px solid var(--border);
+    background: var(--surface); color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .filter-pill:hover { border-color: var(--bleu); color: var(--bleu); }
+  .filter-pill.active-all    { background: var(--bleu-fonce); color: #fff; border-color: var(--bleu-fonce); }
+  .filter-pill.active-ongoing{ background: var(--vert); color: #fff; border-color: var(--vert); }
+  .filter-pill.active-archive{ background: var(--muted); color: #fff; border-color: var(--muted); }
+
+  /* ══ CHARTS GRID ══ */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 24px;
+    align-items: start;
+  }
+  .chart-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(46,127,168,0.06);
+    display: flex;
+    flex-direction: column;
+    height: 420px;
+  }
+  .chart-card .chart-wrap {
+    height: 200px;
+    flex: none;
+  }
+  .chart-card.wide {
+    grid-column: 1 / -1;
+    order: 1;
+    height: 360px;
+  }
+  .chart-card.wide .chart-wrap {
+    flex: 1;
+    height: auto;
+  }
+  .chart-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--bleu-fonce); margin-bottom: 4px; }
+  .chart-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+  .chart-wrap { position: relative; }
+  .chart-wrap-tall { height: 260px; }
+  .mini-stats { display: flex; gap: 20px; margin-bottom: 16px; }
+  .mini-stat-val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; display: block; line-height: 1; }
+  .mini-stat-lbl { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ══ RESPONSIVE ══ */
+  @media (max-width: 900px) {
+    .charts-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ══ ERREUR BANNER ══ */
+  .error-banner {
+    display: none;
+    background: var(--rouge-clair);
+    border: 1.5px solid var(--rouge);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin: 20px 40px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--rouge);
+  }
+  .error-banner.visible { display: block; }
+
+  /* ══ LOADING OVERLAY ══ */
+  .loading {
+    display: none; position: fixed; inset: 0;
+    background: rgba(27,85,112,0.85); z-index: 999;
+    align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  }
+  .loading.active { display: flex; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--jaune);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .loading-text { color: #fff; font-size: 14px; font-weight: 600; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ══ ONGLETS ══ */
+  .tabs-nav {
+    background: var(--bleu-fonce);
+    padding: 0 40px;
+    display: flex;
+    gap: 4px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .tab-btn {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    background: transparent;
+    border: none;
+    padding: 14px 20px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+  .tab-btn.active { color: var(--jaune); border-bottom-color: var(--jaune); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ══ TABLE MEMBRES ══ */
+  .table-wrap {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(46,127,168,0.06);
+    margin-top: 24px;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: var(--bleu-clair);
+    color: var(--bleu-fonce);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 11px 16px;
+    border-top: 1px solid var(--border);
+    color: var(--texte);
+    font-weight: 500;
+  }
+  .data-table tr:hover td { background: var(--bleu-clair); }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .badge-ok    { background: var(--vert-clair);  color: var(--vert); }
+  .badge-retard{ background: var(--rouge-clair); color: var(--rouge); }
+
+  /* ══ BOUTONS RELANCE ══ */
+  .btn-relance-done {
+    display: inline-block;
+    background: #e0e0e0; color: #999;
+    padding: 4px 12px; border-radius: 6px;
+    font-size: 11px; font-weight: 700;
+    white-space: nowrap; cursor: not-allowed;
+  }
+  .btn-relancer-tous {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+    padding: 10px 20px; border-radius: 10px; border: none;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-relancer-tous:disabled { background: #c8c8c8 !important; color: #888 !important; cursor: not-allowed !important; transform: none !important; }
+  .btn-relancer-tous-membres  { background: var(--vert);  color: #fff; box-shadow: 0 2px 10px rgba(39,174,96,0.3); }
+  .btn-relancer-tous-membres:hover:not(:disabled)  { background: #1e9450; transform: translateY(-1px); }
+  .btn-relancer-tous-parrains { background: var(--rouge); color: #fff; box-shadow: 0 2px 10px rgba(192,57,43,0.3); }
+  .btn-relancer-tous-parrains:hover:not(:disabled) { background: #a93226; transform: translateY(-1px); }
+  .btn-inner-spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    display: none; flex-shrink: 0;
+  }
+  .btn-inner-spinner.active { display: block; }
+
+  /* ══ TOAST ══ */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+    background: var(--bleu-fonce); color: #fff;
+    border-radius: 12px; padding: 14px 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: flex-start; gap: 12px;
+    max-width: 340px;
+    transform: translateY(20px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+  }
+  .toast.visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .toast-icon  { font-size: 20px; flex-shrink: 0; line-height: 1.3; }
+  .toast-body  { flex: 1; min-width: 0; }
+  .toast-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .toast-detail{ font-size: 11px; color: rgba(255,255,255,0.65); font-weight: 500; line-height: 1.4; word-break: break-word; }
+  .toast-close { background: none; border: none; color: rgba(255,255,255,0.45); font-size: 16px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; margin-top: 1px; transition: color 0.15s; }
+  .toast-close:hover { color: #fff; }
+  .toast.toast-vert  { border-left: 4px solid var(--vert); }
+  .toast.toast-rouge { border-left: 4px solid #e07060; }
+  .toast.toast-info  { border-left: 4px solid var(--bleu); }
+  .toast.toast-error { background: #8B1A1A; border-left: 4px solid #e07060; }
+
+  /* ══ ALERTE RETARD ══ */
+  .alert-box {
+    background: var(--rouge-clair);
+    border: 1.5px solid var(--rouge);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 24px;
+  }
+  .alert-box-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--rouge);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .alert-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .alert-chip {
+    background: #fff;
+    border: 1px solid var(--rouge);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rouge);
+  }
+  @media (max-width: 700px) {
+    .zone { padding: 24px 20px; }
+    .topbar { padding: 0 20px; }
+    .chart-card.wide { grid-column: span 1; }
+    .sc-value { font-size: 32px; }
+    .error-banner { margin: 12px 20px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Chargement des données…</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✅</div>
+  <div class="toast-body">
+    <div class="toast-title"  id="toast-title"></div>
+    <div class="toast-detail" id="toast-detail"></div>
+  </div>
+  <button class="toast-close" onclick="hideToast()">✕</button>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div>
+      <div class="topbar-title">Les Enfants de <span>Pondypatch</span></div>
+      <div class="topbar-sub">Bilan global</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="last-update" id="lastUpdate">Chargement…</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻ Actualiser</button>
+  </div>
+</div>
+
+<!-- ERREUR -->
+<div class="error-banner" id="errorBanner"></div>
+
+<!-- ONGLETS NAV -->
+<div class="tabs-nav">
+  <button class="tab-btn active" onclick="switchTab('parrainages', this)">📊 Parrainages</button>
+  <button class="tab-btn" onclick="switchTab('membres', this)">👥 Membres & Cotisations</button>
+  <button class="tab-btn" onclick="switchTab('cotisations', this)">💰 Cotisations Parrainage</button>
+  <button class="tab-btn" id="tab-btn-diagnostic" onclick="switchTab('diagnostic', this)">⚠️ Diagnostic</button>
+</div>
+
+<!-- ══ ONGLET PARRAINAGES ══ -->
+<div id="tab-parrainages" class="tab-content active">
+<div class="zone zone-global">
+  <div class="zone-header">
+    <div class="zone-label">
+      <span class="zone-label-pill pill-global">Depuis la création</span>
+      <span class="zone-label-text">Vue globale</span>
+    </div>
+  </div>
+  <div class="scorecard-strip">
+    <div class="scorecard">
+      <div class="sc-label">Parrains</div>
+      <span class="sc-value val-jaune" id="sc-parrains">—</span>
+      <div class="sc-sub">au total</div>
+    </div>
+    <div class="scorecard">
+      <div class="sc-label">Enfants parrainés</div>
+      <span class="sc-value val-blanc" id="sc-enfants">—</span>
+      <div class="sc-sub">au total</div>
+    </div>
+    <div class="scorecard">
+      <div class="sc-label">Parrainages</div>
+      <span class="sc-value val-jaune" id="sc-parrainages">—</span>
+      <div class="sc-sub">au total</div>
+    </div>
+    <div class="scorecard">
+      <div class="sc-label">Parrainages actifs</div>
+      <span class="sc-value val-blanc" id="sc-ongoing">—</span>
+      <div class="sc-sub">en ce moment</div>
+    </div>
+    <div class="scorecard" style="flex:2; min-width:260px">
+      <div class="sc-label">Parcours moyen</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:8px">
+        <!-- Âge début -->
+        <div style="text-align:center">
+          <div style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:#fff; line-height:1" id="sc-age-debut">—</div>
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-top:4px">au début</div>
+        </div>
+        <!-- Flèche + durée -->
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px">
+          <div style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:var(--jaune); line-height:1" id="sc-duree">—</div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; text-transform:uppercase; letter-spacing:1px">ans</div>
+          <div style="width:100%; display:flex; align-items:center; gap:0">
+            <div style="flex:1; height:2px; background:linear-gradient(to right, rgba(255,255,255,0.3), var(--jaune))"></div>
+            <div style="color:var(--jaune); font-size:14px; line-height:1">▶</div>
+          </div>
+        </div>
+        <!-- Âge fin -->
+        <div style="text-align:center">
+          <div style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:var(--jaune); line-height:1" id="sc-age-fin">—</div>
+          <div style="font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-top:4px">à la fin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ZONE 2 — PAR ANNÉE ══ -->
+<div class="zone zone-annee">
+  <div class="zone-header">
+    <div class="zone-label">
+      <span class="zone-label-pill pill-annee">Par année</span>
+      <span class="zone-label-text">Bilan des parrainages</span>
+    </div>
+    <div class="selector-wrap">
+      <span class="selector-label">Année</span>
+      <select id="selectAnnee" onchange="updateAnnee()"></select>
+    </div>
+  </div>
+  <div class="scorecard-strip">
+    <div class="scorecard-light accent-vert">
+      <div class="sc-label sc-label-light">Nouveaux</div>
+      <span class="sc-value val-vert" id="sc-nouveaux">—</span>
+      <div class="sc-sub sc-sub-light">parrainages démarrés</div>
+    </div>
+    <div class="scorecard-light accent-rouge">
+      <div class="sc-label sc-label-light">Terminés</div>
+      <span class="sc-value val-rouge" id="sc-termines">—</span>
+      <div class="sc-sub sc-sub-light">parrainages clôturés</div>
+    </div>
+    <div class="scorecard-light accent-bleu">
+      <div class="sc-label sc-label-light">En cours</div>
+      <span class="sc-value val-bleu" id="sc-encours">—</span>
+      <div class="sc-sub sc-sub-light">parrainages actifs fin d'année</div>
+    </div>
+    <div class="scorecard-light accent-orange">
+      <div class="sc-label sc-label-light">Entretiens</div>
+      <span class="sc-value val-orange" id="sc-entretiens">—</span>
+      <div class="sc-sub sc-sub-light">réalisés cette année</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ZONE 3 — FILTRABLE ══ -->
+<div class="zone zone-filtrable">
+  <div class="zone-header">
+    <div class="zone-label">
+      <span class="zone-label-pill pill-filtrable">Filtrable</span>
+      <span class="zone-label-text">Profil des enfants parrainés</span>
+    </div>
+    <div class="filter-pills">
+      <button class="filter-pill active-all" onclick="setFilter('all', this)">Tous</button>
+      <button class="filter-pill" onclick="setFilter('Ongoing', this)">🟢 En cours</button>
+      <button class="filter-pill" onclick="setFilter('Finished', this)">⚫ Archivés</button>
+    </div>
+  </div>
+  <div class="charts-grid">
+    <!-- Ligne 1 : 3 cards alignées -->
+    <div class="chart-card">
+      <div class="chart-title">Répartition par sexe</div>
+      <div class="chart-sub" id="sub-sexe">— enfants</div>
+      <div class="mini-stats" style="margin-bottom:8px">
+        <div><span class="mini-stat-val val-bleu" id="count-f" style="font-size:18px">—</span><span class="mini-stat-lbl">Filles</span></div>
+        <div><span class="mini-stat-val val-jaune" id="count-m" style="font-size:18px">—</span><span class="mini-stat-lbl">Garçons</span></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartSexe"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Domaine d'études</div>
+      <div class="chart-sub">Répartition par filière</div>
+      <div style="height:42px"></div>
+      <div class="chart-wrap"><canvas id="chartDomaine"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Statut des comptes-rendus</div>
+      <div class="chart-sub">Dernier CR par enfant</div>
+      <div style="height:42px"></div>
+      <div class="chart-wrap"><canvas id="chartCR"></canvas></div>
+    </div>
+    <!-- Ligne 2 : niveau scolaire pleine largeur -->
+    <div class="chart-card wide">
+      <div class="chart-title">Niveau scolaire atteint</div>
+      <div class="chart-sub">Nombre d'enfants par niveau</div>
+      <div class="chart-wrap chart-wrap-tall"><canvas id="chartNiveau"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ZONE CRs ══ -->
+<div class="zone zone-filtrable" style="padding-bottom:48px">
+  <div class="zone-header">
+    <div class="zone-label">
+      <span class="zone-label-pill pill-filtrable">Suivi</span>
+      <span class="zone-label-text">Comptes-rendus individuels</span>
+    </div>
+    <input type="text" id="searchCR" placeholder="🔍 Rechercher…" oninput="filterCRs()"
+      style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;padding:8px 14px;border:2px solid var(--border);border-radius:10px;outline:none;width:240px;color:var(--texte)">
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Enfant</th>
+          <th>Parrain</th>
+          <th>Dernier entretien</th>
+          <th>Statut CR</th>
+          <th>CR</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-crs"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ ZONE 4 — FORMULAIRES ══ -->
+<div class="zone zone-annee" style="border-bottom:none">
+  <div class="zone-header">
+    <div class="zone-label">
+      <span class="zone-label-pill" style="background:var(--orange-clair);color:var(--orange)">Saisie</span>
+      <span class="zone-label-text">Accès rapide aux formulaires</span>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px">
+    <a id="fl-enfant" href="#" target="_blank" style="text-decoration:none">
+      <div class="scorecard-light" style="border-top:3px solid var(--bleu); display:flex; align-items:center; gap:12px; padding:16px 18px">
+        <span style="font-size:22px">👶</span>
+        <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Nouvel enfant</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+      </div>
+    </a>
+    <a id="fl-parrain" href="#" target="_blank" style="text-decoration:none">
+      <div class="scorecard-light" style="border-top:3px solid var(--bleu); display:flex; align-items:center; gap:12px; padding:16px 18px">
+        <span style="font-size:22px">🤝</span>
+        <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Nouveau parrain</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+      </div>
+    </a>
+    <a id="fl-parrainage" href="#" target="_blank" style="text-decoration:none">
+      <div class="scorecard-light" style="border-top:3px solid var(--orange); display:flex; align-items:center; gap:12px; padding:16px 18px">
+        <span style="font-size:22px">🔗</span>
+        <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Nouveau parrainage</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+      </div>
+    </a>
+    <a id="fl-rdv" href="#" target="_blank" style="text-decoration:none">
+      <div class="scorecard-light" style="border-top:3px solid var(--jaune); display:flex; align-items:center; gap:12px; padding:16px 18px">
+        <span style="font-size:22px">🗣️</span>
+        <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Entretien de suivi</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+      </div>
+    </a>
+    <a id="fl-fin" href="#" target="_blank" style="text-decoration:none">
+      <div class="scorecard-light" style="border-top:3px solid var(--rouge); display:flex; align-items:center; gap:12px; padding:16px 18px">
+        <span style="font-size:22px">🔚</span>
+        <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Fin de parrainage</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+      </div>
+    </a>
+  </div>
+</div>
+
+</div> <!-- /tab-parrainages -->
+
+<!-- ══ ONGLET MEMBRES & COTISATIONS ══ -->
+<div id="tab-membres" class="tab-content">
+
+  <!-- Zone scorecards membres -->
+  <div class="zone zone-annee">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill pill-annee">Vue globale</span>
+        <span class="zone-label-text">Membres de l'association</span>
+      </div>
+    </div>
+    <div class="scorecard-strip">
+      <div class="scorecard-light accent-bleu">
+        <div class="sc-label sc-label-light">Total membres</div>
+        <span class="sc-value val-bleu" id="sc-total-membres">—</span>
+        <div class="sc-sub sc-sub-light">inscrits</div>
+      </div>
+      <div class="scorecard-light accent-vert">
+        <div class="sc-label sc-label-light">Cotisation à jour</div>
+        <span class="sc-value val-vert" id="sc-membres-actifs">—</span>
+        <div class="sc-sub sc-sub-light">cette année</div>
+      </div>
+      <div class="scorecard-light accent-rouge">
+        <div class="sc-label sc-label-light">En retard</div>
+        <span class="sc-value val-rouge" id="sc-membres-retard">—</span>
+        <div class="sc-sub sc-sub-light">cotisation manquante</div>
+      </div>
+    </div>
+
+    <!-- Alerte retards supprimée -->
+  </div>
+
+  <!-- Zone liste membres -->
+  <div class="zone zone-filtrable" style="padding-bottom:48px">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill pill-filtrable">Liste</span>
+        <span class="zone-label-text">Tous les membres</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="searchMembre" placeholder="🔍 Rechercher un membre…"
+          oninput="filterMembres()"
+          style="font-family:'Nunito',sans-serif; font-size:13px; font-weight:600; padding:8px 14px; border:2px solid var(--border); border-radius:10px; outline:none; width:240px; color:var(--texte)">
+        <button id="btn-relancer-tous-membres" class="btn-relancer-tous btn-relancer-tous-membres" onclick="relancerTousMembres(this)">
+          <div class="btn-inner-spinner" id="spinner-membres"></div>
+          <span id="label-relancer-membres">✉ Relancer tous</span>
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Cotisation <span id="annee-cotisation"></span></th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-membres"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Forms membres -->
+  <div class="zone zone-annee" style="border-bottom:none">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill" style="background:var(--orange-clair);color:var(--orange)">Saisie</span>
+        <span class="zone-label-text">Formulaires</span>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px">
+      <a id="fl-membre" href="#" target="_blank" style="text-decoration:none">
+        <div class="scorecard-light" style="border-top:3px solid var(--bleu); display:flex; align-items:center; gap:12px; padding:16px 18px">
+          <span style="font-size:22px">👤</span>
+          <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Nouveau membre</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+        </div>
+      </a>
+      <a id="fl-paiement-membre" href="#" target="_blank" style="text-decoration:none">
+        <div class="scorecard-light" style="border-top:3px solid var(--vert); display:flex; align-items:center; gap:12px; padding:16px 18px">
+          <span style="font-size:22px">💰</span>
+          <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Paiement manuel</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div> <!-- /tab-membres -->
+
+<!-- ══ ONGLET COTISATIONS PARRAINAGE ══ -->
+<div id="tab-cotisations" class="tab-content">
+
+  <!-- Scorecards semestres année en cours -->
+  <div class="zone zone-global">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill pill-global">Année en cours</span>
+        <span class="zone-label-text" id="cot-annee-titre">Cotisations —</span>
+      </div>
+    </div>
+    <div class="scorecard-strip">
+      <div class="scorecard">
+        <div class="sc-label">S1 — Parrains payés</div>
+        <span class="sc-value val-jaune" id="sc-s1-payes">—</span>
+        <div class="sc-sub" id="sc-s1-total">— attendus</div>
+      </div>
+      <div class="scorecard">
+        <div class="sc-label">S1 — Collecté</div>
+        <span class="sc-value val-blanc" id="sc-s1-montant">—</span>
+        <div class="sc-sub" id="sc-s1-attendu">— attendu</div>
+      </div>
+      <div class="scorecard">
+        <div class="sc-label">S2 — Parrains payés</div>
+        <span class="sc-value val-jaune" id="sc-s2-payes">—</span>
+        <div class="sc-sub" id="sc-s2-total">— attendus</div>
+      </div>
+      <div class="scorecard">
+        <div class="sc-label">S2 — Collecté</div>
+        <span class="sc-value val-blanc" id="sc-s2-montant">—</span>
+        <div class="sc-sub" id="sc-s2-attendu">— attendu</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Historique par parrain -->
+  <div class="zone zone-filtrable" style="padding-bottom:48px">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill pill-filtrable">Historique</span>
+        <span class="zone-label-text">Détail par parrain</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="searchParrain" placeholder="🔍 Rechercher un parrain…"
+          oninput="filterParrains()"
+          style="font-family:'Nunito',sans-serif; font-size:13px; font-weight:600; padding:8px 14px; border:2px solid var(--border); border-radius:10px; outline:none; width:240px; color:var(--texte)">
+        <select id="filterSemestre" onchange="filterParrains()"
+          style="font-family:'Nunito',sans-serif; font-size:13px; font-weight:700; color:var(--bleu-fonce); background:var(--surface); border:2px solid var(--border); border-radius:10px; padding:8px 14px; cursor:pointer; outline:none;">
+          <option value="">Tous les semestres</option>
+        </select>
+        <button id="btn-relancer-tous-parrains" class="btn-relancer-tous btn-relancer-tous-parrains" onclick="relancerTousParrains(this)">
+          <div class="btn-inner-spinner" id="spinner-parrains"></div>
+          <span id="label-relancer-parrains">✉ Relancer tous</span>
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Parrain</th>
+            <th>Email</th>
+            <th>Semestre</th>
+            <th>Attendu</th>
+            <th>Payé</th>
+            <th>Date paiement</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-cotisations"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Form cotisations -->
+  <div class="zone zone-annee" style="border-bottom:none">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill" style="background:var(--orange-clair);color:var(--orange)">Saisie</span>
+        <span class="zone-label-text">Formulaires</span>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px">
+      <a id="fl-paiement-cot" href="#" target="_blank" style="text-decoration:none">
+        <div class="scorecard-light" style="border-top:3px solid var(--vert); display:flex; align-items:center; gap:12px; padding:16px 18px">
+          <span style="font-size:22px">💰</span>
+          <div><div style="font-size:13px;font-weight:700;color:var(--bleu-fonce)">Paiement manuel</div><div style="font-size:11px;color:var(--muted)">Ouvrir le formulaire →</div></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div> <!-- /tab-cotisations -->
+
+<!-- ══ ONGLET DIAGNOSTIC ══ -->
+<div id="tab-diagnostic" class="tab-content">
+  <div class="zone zone-annee">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill" style="background:var(--rouge-clair);color:var(--rouge)">Vérification</span>
+        <span class="zone-label-text">Diagnostic des données</span>
+      </div>
+    </div>
+    <div class="scorecard-strip" style="margin-bottom:0">
+      <div class="scorecard-light accent-rouge">
+        <div class="sc-label sc-label-light">Cotisations sans membre</div>
+        <span class="sc-value val-rouge" id="diag-cotis-sans-membre">—</span>
+        <div class="sc-sub sc-sub-light">non réconciliées</div>
+      </div>
+      <div class="scorecard-light accent-orange">
+        <div class="sc-label sc-label-light">Email différent</div>
+        <span class="sc-value val-orange" id="diag-email-diff">—</span>
+        <div class="sc-sub sc-sub-light">correspondances approximatives</div>
+      </div>
+      <div class="scorecard-light accent-rouge">
+        <div class="sc-label sc-label-light">Parrainage sans parrain</div>
+        <span class="sc-value val-rouge" id="diag-parrainage-sans-parrain">—</span>
+        <div class="sc-sub sc-sub-light">non réconciliés</div>
+      </div>
+      <div class="scorecard-light" id="diag-scorecard-ok" style="border-top:3px solid var(--vert)">
+        <div class="sc-label sc-label-light">Statut global</div>
+        <span class="sc-value val-vert" id="diag-total">—</span>
+        <div class="sc-sub sc-sub-light" id="diag-status-label">problèmes détectés</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="zone zone-filtrable" style="padding-bottom:32px">
+    <div class="zone-header">
+      <div class="zone-label">
+        <span class="zone-label-pill pill-filtrable">Détail</span>
+        <span class="zone-label-text">Problèmes détectés</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="searchDiag" placeholder="🔍 Rechercher…" oninput="filterDiagnostic()"
+          style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:600;padding:7px 12px;border:2px solid var(--border);border-radius:8px;outline:none;width:200px;color:var(--texte)">
+        <select id="filterDiagType" onchange="filterDiagnostic()"
+          style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--bleu-fonce);background:#fff;border:2px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;outline:none">
+          <option value="">Tous les types</option>
+          <option value="cotisation-sans-membre">Cotisation sans membre</option>
+          <option value="email-different">Email différent</option>
+          <option value="parrainage-sans-parrain">Parrainage sans parrain</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Type</th><th>Nom</th><th>Email</th><th>Détail</th></tr></thead>
+        <tbody id="tbody-diagnostic">
+          <tr><td colspan="4" style="text-align:center;color:#7A9AAD;padding:20px">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// ONGLETS
+// ══════════════════════════════════════════
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// LIENS FORMULAIRES
+// ══════════════════════════════════════════
+const FORM_LINKS = {
+  ENFANT:           'https://docs.google.com/forms/d/1EFfX_YdS_LTkVyQOVEw5YtyDqoKF2YUS5qjotNepznc/viewform',
+  PARRAIN:          'https://docs.google.com/forms/d/1Y6ok1UqCBPcQmfcQ56S1ErWJrMmIVTZNUtwpgD4hIHM/viewform',
+  PARRAINAGE:       'https://docs.google.com/forms/d/17dFr6URnFbInFKxOzMR6CqBgKI2GyFWGTqkJMz3SlQk/viewform',
+  RDV_SUIVI:        'https://docs.google.com/forms/d/1I4-zBU3RdXsgVDfwPxm4Di7ZNKt4P4F2CBpiMjgYlAw/viewform',
+  FIN_PARRAINAGE:   'https://docs.google.com/forms/d/1JfguhPFqoGFCy27uMtPkjrbDGKTqEnDjszcZvUSPuKw/viewform',
+  VALIDATION_CR:    'https://docs.google.com/forms/d/1TYRtILDX3_mwnXkNt42paU86mPeePO2fXTehT2wVcoU/viewform',
+  MEMBRES:          'https://docs.google.com/forms/d/1rxYZl8NswOlM-f_IMNjT-bPbPpIPfo5AIfJ52B-hrhQ/viewform',
+  PAIEMENT_MANUEL:  'https://docs.google.com/forms/d/1Ci611Y0fB4uckmeIB7Vdorfpw0C97ZN9SRk4M464U4s/viewform',
+};
+
+// ══════════════════════════════════════════
+// ÉTAT
+// ══════════════════════════════════════════
+let data = null;
+let currentFilter = 'all';
+let currentAnnee  = null;
+let charts = {};
+
+// ══════════════════════════════════════════
+// CHARGEMENT
+// ══════════════════════════════════════════
+function loadData() {
+  showLoading(true);
+  hideError();
+  document.getElementById('refreshBtn').disabled = true;
+  google.script.run
+    .withSuccessHandler(function(response) {
+      showLoading(false);
+      document.getElementById('refreshBtn').disabled = false;
+      if (!response || response.error) {
+        showError('Erreur serveur : ' + (response && response.error ? response.error : 'réponse vide'));
+        return;
+      }
+      data = response;
+      renderAll(data);
+    })
+    .withFailureHandler(function(err) {
+      showLoading(false);
+      document.getElementById('refreshBtn').disabled = false;
+      showError('Impossible de charger les données : ' + err.message);
+    })
+    .serveDashboardData();
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function renderAll(d) {
+  animateNum('sc-parrains',   d.parrains);
+  animateNum('sc-enfants',    d.enfants);
+  animateNum('sc-parrainages',d.parrainages);
+  animateNum('sc-ongoing',    d.ongoing);
+  document.getElementById('sc-duree').textContent    = Math.round(d.duree_moy || 0);
+  document.getElementById('sc-age-debut').textContent = d.age_moy_debut || '—';
+  document.getElementById('sc-age-fin').textContent   = d.age_moy_fin   || '—';
+  document.getElementById('lastUpdate').textContent   = 'Données au ' + d.lastUpdate;
+
+  const sel = document.getElementById('selectAnnee');
+  sel.innerHTML = '';
+  [...(d.annees || [])].reverse().forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    sel.appendChild(opt);
+  });
+  currentAnnee = parseInt(sel.value);
+
+  updateAnnee();
+  updateFilteredCharts();
+  if (d.membres)     renderMembres(d.membres);
+  if (d.cotisations) renderCotisations(d.cotisations);
+  if (d.diagnostic)  renderDiagnostic(d.diagnostic);
+  if (d.crs)         renderCRs(d.crs);
+}
+
+function updateAnnee() {
+  currentAnnee = parseInt(document.getElementById('selectAnnee').value);
+  const d = (data && data.par_annee && data.par_annee[currentAnnee])
+    || { nouveaux:0, termines:0, encours:0, entretiens:0 };
+  animateNum('sc-nouveaux',   d.nouveaux);
+  animateNum('sc-termines',   d.termines);
+  animateNum('sc-encours',    d.encours);
+  animateNum('sc-entretiens', d.entretiens);
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(b => b.className = 'filter-pill');
+  if (f === 'all')      btn.classList.add('active-all');
+  if (f === 'Ongoing')  btn.classList.add('active-ongoing');
+  if (f === 'Finished') btn.classList.add('active-archive');
+  updateFilteredCharts();
+}
+
+function updateFilteredCharts() {
+  if (!data) return;
+  const d = (data.enfants_data && data.enfants_data[currentFilter])
+    || (data.enfants_data && data.enfants_data.all)
+    || {};
+
+  const sexe = d.sexe || { F:0, M:0 };
+  document.getElementById('sub-sexe').textContent = (sexe.F + sexe.M) + ' enfants';
+  document.getElementById('count-f').textContent  = sexe.F;
+  document.getElementById('count-m').textContent  = sexe.M;
+  renderDoughnut('chartSexe', ['Filles','Garçons'], [sexe.F, sexe.M], ['#2E7FA8','#F5C020']);
+
+  const domaines = d.domaines || {};
+  renderDoughnut('chartDomaine', Object.keys(domaines), Object.values(domaines),
+    ['#2E7FA8','#E8502A','#F5C020','#27AE60','#7B4E9E','#E67E22']);
+
+  const niveaux = d.niveaux || {};
+  renderBar('chartNiveau', Object.keys(niveaux), Object.values(niveaux), '#2E7FA8');
+
+  const cr = d.cr || {};
+  renderDoughnut('chartCR', Object.keys(cr), Object.values(cr),
+    ['#27AE60','#F5C020','#7A9AAD']);
+}
+
+// ══════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════
+function renderDoughnut(id, labels, values, colors) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { family:'Nunito', size:11, weight:'700' }, padding:12, boxWidth:10, color:'#1A3444' }
+        }
+      }
+    }
+  });
+}
+
+function renderBar(id, labels, values, color) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: color+'CC', borderColor: color, borderWidth: 2, borderRadius: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family:'Nunito', size:10, weight:'700' }, color:'#7A9AAD' } },
+        y: { grid: { color:'rgba(46,127,168,0.08)' }, ticks: { font: { family:'Nunito', size:10 }, color:'#7A9AAD' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// ÉTAT RELANCES
+// ══════════════════════════════════════════
+const relancedIds = new Set();
+function markRelanced(email) { if (email) relancedIds.add(String(email).toLowerCase().trim()); }
+function isRelanced(email)   { return !!email && relancedIds.has(String(email).toLowerCase().trim()); }
+
+function btnRelance({ url, label, couleur, email }) {
+  if (!url) return '—';
+  if (isRelanced(email)) return '<span class="btn-relance-done">✓ Relancé récemment</span>';
+  const safe = String(email || '').toLowerCase().replace(/'/g, "\\'");
+  return `<a href="${url}" target="_blank"
+    onclick="markRelanced('${safe}'); setTimeout(refreshRelanceButtons, 350);"
+    style="display:inline-block;background:${couleur};color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700;white-space:nowrap">${label}</a>`;
+}
+
+function updateBtnRelancerMembres() {
+  const btn   = document.getElementById('btn-relancer-tous-membres');
+  const label = document.getElementById('label-relancer-membres');
+  if (!btn) return;
+  const hasEligible = membresData.some(m => !m.cotisationOk && m.urlRelance && m.eligible && !isRelanced(m.email));
+  btn.disabled          = !hasEligible;
+  btn.style.background  = hasEligible ? '#C0392B' : '';
+  btn.style.boxShadow   = hasEligible ? '0 2px 10px rgba(192,57,43,0.3)' : '';
+  label.textContent     = hasEligible ? '✉ Relancer tous' : '✓ Aucune relance à envoyer';
+}
+
+function updateBtnRelancerParrains() {
+  const btn   = document.getElementById('btn-relancer-tous-parrains');
+  const label = document.getElementById('label-relancer-parrains');
+  if (!btn) return;
+  const hasEligible = parrainsCotData.some(p => !p.aJour && p.hyperlinkRelance && p.eligible && !isRelanced(p.email));
+  btn.disabled          = !hasEligible;
+  btn.style.background  = hasEligible ? '#C0392B' : '';
+  btn.style.boxShadow   = hasEligible ? '0 2px 10px rgba(192,57,43,0.3)' : '';
+  label.textContent     = hasEligible ? '✉ Relancer tous' : '✓ Aucune relance à envoyer';
+}
+
+function refreshRelanceButtons() {
+  const qm = (document.getElementById('searchMembre').value || '').toLowerCase();
+  const listeM = qm ? membresData.filter(m =>
+    (m.nom||'').toLowerCase().includes(qm) || (m.prenom||'').toLowerCase().includes(qm) || (m.email||'').toLowerCase().includes(qm)
+  ) : membresData;
+  renderTableMembres(listeM);
+  updateBtnRelancerMembres();
+
+  const qp  = (document.getElementById('searchParrain').value || '').toLowerCase();
+  const sem = document.getElementById('filterSemestre').value;
+  let listeP = qp ? parrainsCotData.filter(p =>
+    (p.nom||'').toLowerCase().includes(qp) || (p.email||'').toLowerCase().includes(qp)
+  ) : parrainsCotData;
+  if (sem) listeP = listeP.map(p => ({ ...p, lignes: p.lignes.filter(l => l.semestre === sem) })).filter(p => p.lignes.length > 0);
+  renderTableCotisations(listeP);
+  updateBtnRelancerParrains();
+}
+
+// ══ TOAST ══
+let _toastTimer = null;
+function showToast({ icon, title, detail, variant }) {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent   = icon;
+  document.getElementById('toast-title').textContent  = title;
+  document.getElementById('toast-detail').textContent = detail;
+  el.className = 'toast toast-' + (variant || 'info');
+  void el.offsetWidth;
+  el.classList.add('visible');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(hideToast, 6000);
+}
+function hideToast() { document.getElementById('toast').classList.remove('visible'); }
+
+// ══ RELANCER TOUS MEMBRES ══
+function relancerTousMembres(btn) {
+  const eligibles = membresData.filter(m => !m.cotisationOk && m.urlRelance && m.eligible && !isRelanced(m.email));
+  if (!eligibles.length) {
+    showToast({ icon: 'ℹ️', title: 'Aucune relance à envoyer', detail: 'Tous les membres éligibles ont déjà été relancés.', variant: 'info' });
+    return;
+  }
+  const spinner = document.getElementById('spinner-membres');
+  const label   = document.getElementById('label-relancer-membres');
+  btn.disabled  = true;
+  spinner.classList.add('active');
+  label.textContent = 'Envoi en cours…';
+  google.script.run
+    .withSuccessHandler(function(result) {
+      spinner.classList.remove('active');
+      eligibles.forEach(m => markRelanced(m.email));
+      refreshRelanceButtons();
+      const nb   = (result && result.count != null) ? result.count : eligibles.length;
+      const noms = eligibles.map(m => [m.prenom, m.nom].filter(Boolean).join(' ')).join(', ');
+      showToast({ icon: '✅', title: nb + ' relance' + (nb > 1 ? 's' : '') + ' envoyée' + (nb > 1 ? 's' : ''), detail: noms, variant: 'vert' });
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      spinner.classList.remove('active');
+      updateBtnRelancerMembres();
+      showToast({ icon: '⚠️', title: 'Erreur lors de l\'envoi', detail: err.message, variant: 'error' });
+    })
+    .relancerMembresEligibles();
+}
+
+// ══ RELANCER TOUS PARRAINS ══
+function relancerTousParrains(btn) {
+  const eligibles = parrainsCotData.filter(p => !p.aJour && p.hyperlinkRelance && p.eligible && !isRelanced(p.email));
+  if (!eligibles.length) {
+    showToast({ icon: 'ℹ️', title: 'Aucune relance à envoyer', detail: 'Tous les parrains éligibles ont déjà été relancés.', variant: 'info' });
+    return;
+  }
+  const spinner = document.getElementById('spinner-parrains');
+  const label   = document.getElementById('label-relancer-parrains');
+  btn.disabled  = true;
+  spinner.classList.add('active');
+  label.textContent = 'Envoi en cours…';
+  google.script.run
+    .withSuccessHandler(function(result) {
+      spinner.classList.remove('active');
+      eligibles.forEach(p => markRelanced(p.email));
+      refreshRelanceButtons();
+      const nb   = (result && result.count != null) ? result.count : eligibles.length;
+      const noms = eligibles.map(p => p.nom || p.email).join(', ');
+      showToast({ icon: '✅', title: nb + ' relance' + (nb > 1 ? 's' : '') + ' envoyée' + (nb > 1 ? 's' : ''), detail: noms, variant: 'rouge' });
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      spinner.classList.remove('active');
+      updateBtnRelancerParrains();
+      showToast({ icon: '⚠️', title: 'Erreur lors de l\'envoi', detail: err.message, variant: 'error' });
+    })
+    .relancerTousLesEligibles();
+}
+
+// ══════════════════════════════════════════
+// COTISATIONS PARRAINAGE
+// ══════════════════════════════════════════
+let parrainsCotData = [];
+
+function renderCotisations(c) {
+  parrainsCotData = c.parParrain || [];
+
+  document.getElementById('cot-annee-titre').textContent = 'Cotisations ' + c.anneeEnCours;
+
+  const s1 = c.s1 || {};
+  const s2 = c.s2 || {};
+  document.getElementById('sc-s1-payes').textContent   = s1.payes            || 0;
+  document.getElementById('sc-s1-total').textContent   = (s1.total           || 0) + ' attendus';
+  document.getElementById('sc-s1-montant').textContent = (s1.montantPaye     || 0) + ' €';
+  document.getElementById('sc-s1-attendu').textContent = (s1.montantAttendu  || 0) + ' € attendu';
+  document.getElementById('sc-s2-payes').textContent   = s2.payes            || 0;
+  document.getElementById('sc-s2-total').textContent   = (s2.total           || 0) + ' attendus';
+  document.getElementById('sc-s2-montant').textContent = (s2.montantPaye     || 0) + ' €';
+  document.getElementById('sc-s2-attendu').textContent = (s2.montantAttendu  || 0) + ' € attendu';
+
+  const semestres = [...new Set(parrainsCotData.flatMap(p => p.lignes.map(l => l.semestre)))].sort();
+  const sel = document.getElementById('filterSemestre');
+  sel.innerHTML = '<option value="">Tous les semestres</option>';
+  semestres.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+
+  renderTableCotisations(parrainsCotData);
+  updateBtnRelancerParrains();
+}
+
+function renderTableCotisations(liste) {
+  const tbody = document.getElementById('tbody-cotisations');
+  if (!liste.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Aucun résultat</td></tr>';
+    return;
+  }
+  const rows = [];
+  liste.forEach(p => {
+    p.lignes.forEach((l, i) => {
+      const grise = !p.eligible || isRelanced(p.email);
+      const actionCell = i === 0
+        ? `<td rowspan="${p.lignes.length}" style="vertical-align:top;padding-top:14px">
+            ${!p.aJour && p.hyperlinkRelance
+              ? grise
+                ? '<span class="btn-relance-done">✓ Relancé récemment</span>'
+                : btnRelance({ url: p.hyperlinkRelance, label: '✉ Relancer', couleur: '#C0392B', email: p.email })
+              : '—'}
+           </td>`
+        : '';
+      rows.push(`
+        <tr>
+          ${i === 0 ? `<td rowspan="${p.lignes.length}" style="font-weight:700;vertical-align:top;padding-top:14px">
+            ${p.nom}
+            ${p.aJour
+              ? '<span class="badge badge-ok" style="margin-left:6px;font-size:10px">à jour</span>'
+              : '<span class="badge badge-retard" style="margin-left:6px;font-size:10px">retard</span>'}
+          </td>
+          <td rowspan="${p.lignes.length}" style="color:var(--muted);vertical-align:top;padding-top:14px">${p.email}</td>` : ''}
+          <td style="font-weight:600">${l.semestre}</td>
+          <td>${l.montantAttendu} €</td>
+          <td style="font-weight:700;color:${l.statut === '✅ Payé' ? 'var(--vert)' : 'var(--muted)'}">${l.montantPaye} €</td>
+          <td style="color:var(--muted)">${l.datePaiement}</td>
+          ${actionCell}
+        </tr>
+      `);
+    });
+  });
+  tbody.innerHTML = rows.join('');
+}
+
+function filterParrains() {
+  const q   = document.getElementById('searchParrain').value.toLowerCase();
+  const sem = document.getElementById('filterSemestre').value;
+  let filtered = parrainsCotData.filter(p =>
+    (p.nom   || '').toLowerCase().includes(q) ||
+    (p.email || '').toLowerCase().includes(q)
+  );
+  if (sem) {
+    filtered = filtered
+      .map(p => ({ ...p, lignes: p.lignes.filter(l => l.semestre === sem) }))
+      .filter(p => p.lignes.length > 0);
+  }
+  renderTableCotisations(filtered);
+}
+
+// ══════════════════════════════════════════
+// MEMBRES
+// ══════════════════════════════════════════
+let membresData = [];
+
+function renderMembres(m) {
+  membresData = m.liste || [];
+  animateNum('sc-total-membres',  m.total              || 0);
+  animateNum('sc-membres-actifs', m.actifs             || 0);
+  animateNum('sc-membres-retard', (m.enRetard || []).length);
+  document.getElementById('annee-cotisation').textContent = m.anneeEnCours || '';
+  renderTableMembres(membresData);
+  updateBtnRelancerMembres();
+}
+
+function renderTableMembres(liste) {
+  const tbody = document.getElementById('tbody-membres');
+  if (!liste.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Aucun membre trouvé</td></tr>';
+    return;
+  }
+  tbody.innerHTML = liste.map(m => {
+    const grise = !m.eligible || isRelanced(m.email);
+    return `<tr>
+      <td style="font-weight:700">${m.nom || '—'}</td>
+      <td>${m.prenom || '—'}</td>
+      <td style="color:var(--muted)">${m.email || '—'}</td>
+      <td><span class="badge ${m.cotisationOk ? 'badge-ok' : 'badge-retard'}">${m.cotisationOk ? '✓ À jour' : '⚠ En retard'}</span></td>
+      <td>${!m.cotisationOk && m.urlRelance
+        ? grise
+          ? '<span class="btn-relance-done">✓ Relancé récemment</span>'
+          : btnRelance({ url: m.urlRelance, label: '🔔 Relancer', couleur: '#4CAF7D', email: m.email })
+        : '—'
+      }</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterMembres() {
+  const q = document.getElementById('searchMembre').value.toLowerCase();
+  const filtered = membresData.filter(m =>
+    (m.nom    || '').toLowerCase().includes(q) ||
+    (m.prenom || '').toLowerCase().includes(q) ||
+    (m.email  || '').toLowerCase().includes(q)
+  );
+  renderTableMembres(filtered);
+}
+
+// ══════════════════════════════════════════
+// UTILITAIRES
+// ══════════════════════════════════════════
+function showLoading(v) { document.getElementById('loading').classList.toggle('active', v); }
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  el.textContent = '⚠️ ' + msg;
+  el.classList.add('visible');
+}
+function hideError() { document.getElementById('errorBanner').classList.remove('visible'); }
+
+function animateNum(id, target) {
+  const el = document.getElementById(id);
+  const start = parseInt(el.textContent) || 0;
+  const duration = 600;
+  const step = (ts) => {
+    if (!step.start) step.start = ts;
+    const progress = Math.min((ts - step.start) / duration, 1);
+    el.textContent = Math.round(start + (target - start) * easeOut(progress));
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+function initFormLinks() {
+  const map = {
+    'fl-enfant':          FORM_LINKS.ENFANT,
+    'fl-parrain':         FORM_LINKS.PARRAIN,
+    'fl-parrainage':      FORM_LINKS.PARRAINAGE,
+    'fl-rdv':             FORM_LINKS.RDV_SUIVI,
+    'fl-fin':             FORM_LINKS.FIN_PARRAINAGE,
+    'fl-membre':          FORM_LINKS.MEMBRES,
+    'fl-paiement-membre': FORM_LINKS.PAIEMENT_MANUEL,
+    'fl-paiement-cot':    FORM_LINKS.PAIEMENT_MANUEL,
+  };
+  Object.entries(map).forEach(([id, url]) => {
+    const el = document.getElementById(id);
+    if (el) el.href = url;
+  });
+}
+
+// ══════════════════════════════════════════
+// DIAGNOSTIC
+// ══════════════════════════════════════════
+let diagnosticData = [];
+
+function renderDiagnostic(result) {
+  diagnosticData = (result && result.alertes) || [];
+  const total    = result.total || 0;
+
+  const cotis   = diagnosticData.filter(a => a.type === 'cotisation-sans-membre').length;
+  const emailD  = diagnosticData.filter(a => a.type === 'email-different').length;
+  const parrain = diagnosticData.filter(a => a.type === 'parrainage-sans-parrain').length;
+
+  document.getElementById('diag-cotis-sans-membre').textContent      = cotis;
+  document.getElementById('diag-email-diff').textContent             = emailD;
+  document.getElementById('diag-parrainage-sans-parrain').textContent = parrain;
+  document.getElementById('diag-total').textContent                   = total;
+
+  const okCard      = document.getElementById('diag-scorecard-ok');
+  const statusLabel = document.getElementById('diag-status-label');
+  if (total === 0) {
+    document.getElementById('diag-total').className  = 'sc-value val-vert';
+    document.getElementById('diag-total').textContent = '✅';
+    statusLabel.textContent        = 'Tout est cohérent';
+    okCard.style.borderTopColor    = 'var(--vert)';
+  } else {
+    document.getElementById('diag-total').className  = 'sc-value val-rouge';
+    statusLabel.textContent        = 'problème' + (total > 1 ? 's' : '') + ' détecté' + (total > 1 ? 's' : '');
+    okCard.style.borderTopColor    = 'var(--rouge)';
+  }
+
+  const tabBtn = document.getElementById('tab-btn-diagnostic');
+  if (tabBtn) tabBtn.textContent = total > 0 ? '⚠️ Diagnostic (' + total + ')' : '✅ Diagnostic';
+
+  filterDiagnostic();
+}
+
+function filterDiagnostic() {
+  const q    = (document.getElementById('searchDiag').value || '').toLowerCase();
+  const type = document.getElementById('filterDiagType').value;
+  let liste  = diagnosticData;
+  if (type) liste = liste.filter(a => a.type === type);
+  if (q)    liste = liste.filter(a =>
+    (a.nom   || '').toLowerCase().includes(q) ||
+    (a.email || '').toLowerCase().includes(q) ||
+    (a.detail|| '').toLowerCase().includes(q)
+  );
+  renderTableDiagnostic(liste);
+}
+
+function renderTableDiagnostic(liste) {
+  const tbody = document.getElementById('tbody-diagnostic');
+  if (!liste.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#7A9AAD;padding:20px">Aucun problème détecté 🎉</td></tr>';
+    return;
+  }
+  const typeConfig = {
+    'cotisation-sans-membre':  { label: '⚠️ Cotisation sans membre',  color: 'var(--rouge)',  bg: 'var(--rouge-clair)'  },
+    'email-different':         { label: '📧 Email différent',         color: 'var(--orange)', bg: 'var(--orange-clair)' },
+    'parrainage-sans-parrain': { label: '⚠️ Parrainage sans parrain', color: 'var(--rouge)',  bg: 'var(--rouge-clair)'  },
+  };
+  tbody.innerHTML = liste.map(a => {
+    const cfg = typeConfig[a.type] || { label: a.type, color: 'var(--muted)', bg: '#f0f0f0' };
+    return `<tr>
+      <td><span style="display:inline-block;background:${cfg.bg};color:${cfg.color};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap">${cfg.label}</span></td>
+      <td style="font-weight:700">${a.nom || '—'}</td>
+      <td style="color:#7A9AAD">${a.email || '—'}</td>
+      <td style="color:#7A9AAD;font-size:11px">${a.detail || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// CRs
+// ══════════════════════════════════════════
+let crsData = [];
+
+function renderCRs(liste) {
+  crsData = liste || [];
+  renderTableCRs(crsData);
+}
+
+function renderTableCRs(liste) {
+  const tbody = document.getElementById('tbody-crs');
+  if (!liste.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Aucun CR trouvé</td></tr>';
+    return;
+  }
+  const statutConfig = {
+    'CR envoyé': { color: 'var(--vert)',   bg: 'var(--vert-clair)',   label: '✓ CR envoyé' },
+    'CR généré': { color: 'var(--orange)', bg: 'var(--orange-clair)', label: '⏳ À valider' },
+    'En attente':{ color: 'var(--rouge)',  bg: 'var(--rouge-clair)',  label: '⚠ En attente' },
+  };
+  tbody.innerHTML = liste.map(cr => {
+    const cfg = statutConfig[cr.crStatut] || { color: 'var(--muted)', bg: '#f0f0f0', label: cr.crStatut || '—' };
+    const btnCR = cr.crUrl
+      ? `<a href="${cr.crUrl}" target="_blank" style="display:inline-block;background:var(--bleu-clair);color:var(--bleu-fonce);padding:4px 12px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700">📄 Voir/Modifier</a>`
+      : '—';
+    const btnAction = cr.validationUrl
+      ? `<a href="${cr.validationUrl}" target="_blank" style="display:inline-block;background:var(--bleu-fonce);color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700">✉ Envoyer</a>`
+      : '—';
+    return `<tr>
+      <td style="font-weight:700">${cr.kidName}</td>
+      <td style="color:var(--muted)">${cr.parrainName || '—'}</td>
+      <td style="color:var(--muted)">${cr.dernierEntretienAffiche || '—'}</td>
+      <td><span style="display:inline-block;background:${cfg.bg};color:${cfg.color};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">${cfg.label}</span></td>
+      <td>${btnCR}</td>
+      <td>${btnAction}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterCRs() {
+  const q = document.getElementById('searchCR').value.toLowerCase();
+  const filtered = crsData.filter(cr =>
+    (cr.kidName    || '').toLowerCase().includes(q) ||
+    (cr.parrainName|| '').toLowerCase().includes(q) ||
+    (cr.crStatut   || '').toLowerCase().includes(q)
+  );
+  renderTableCRs(filtered);
+}
+
+// ══════════════════════════════════════════
+initFormLinks();
+loadData();
+</script>
+</body>
+</html>

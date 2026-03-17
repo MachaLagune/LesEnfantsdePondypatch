@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Récap Apps Script — Les Enfants de Pondypatch</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bleu:     #3A7CA5;
+    --bleu-dark:#2c5f7e;
+    --bleu-light:#EAF3FF;
+    --or:       #FFD966;
+    --vert:     #4CAF7D;
+    --vert-light:#E8F7EF;
+    --orange:   #F0923A;
+    --orange-light:#FFF4E0;
+    --gris:     #f7f8fa;
+    --texte:    #2a2d35;
+    --muted:    #7a8094;
+    --border:   #e4e7ef;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f0f3f8;
+    color: var(--texte);
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--bleu);
+    padding: 48px 40px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(255,217,102,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 50%);
+  }
+  header .badge {
+    display: inline-block;
+    background: var(--or);
+    color: var(--bleu-dark);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    position: relative;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: #fff;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  header p {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.95rem;
+    position: relative;
+  }
+
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+    color: var(--bleu);
+    margin: 44px 0 18px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* FICHIERS */
+  .files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .file-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: box-shadow 0.2s;
+  }
+  .file-card:hover { box-shadow: 0 4px 16px rgba(58,124,165,0.1); }
+
+  .file-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--bleu);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .file-name::before {
+    content: '{}';
+    font-size: 0.7rem;
+    background: var(--bleu);
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+  .file-fns {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .file-fns li {
+    font-size: 0.78rem;
+    color: var(--muted);
+    padding-left: 10px;
+    position: relative;
+  }
+  .file-fns li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--border);
+    font-size: 0.7rem;
+  }
+
+  /* DECLENCHEURS */
+  .triggers-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .triggers-table th {
+    background: var(--bleu);
+    color: #fff;
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+  }
+  .triggers-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .triggers-table tr:last-child td { border-bottom: none; }
+  .triggers-table tr:hover td { background: var(--gris); }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .tag-form    { background: var(--bleu-light); color: var(--bleu); }
+  .tag-daily   { background: var(--vert-light); color: #3a8a5a; }
+  .tag-monthly { background: var(--orange-light); color: #c07a20; }
+
+  /* EMAILS — FLOW */
+  .flow-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .flow-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .flow-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .flow-header.bleu    { background: var(--bleu); color: #fff; }
+  .flow-header.vert    { background: var(--vert); color: #fff; }
+  .flow-header.orange  { background: var(--orange); color: #fff; }
+
+  .flow-header h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  .flow-header p {
+    font-size: 0.78rem;
+    opacity: 0.85;
+    margin: 2px 0 0;
+  }
+
+  .flow-body {
+    padding: 18px 20px;
+  }
+
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bleu-light);
+    color: var(--bleu);
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .flow-header.vert  ~ .flow-body .step-num { background: var(--vert-light); color: #3a8a5a; }
+  .flow-header.orange ~ .flow-body .step-num { background: var(--orange-light); color: #c07a20; }
+
+  .step-content {
+    font-size: 0.84rem;
+    color: var(--texte);
+    line-height: 1.6;
+  }
+  .step-content strong { color: var(--bleu-dark); }
+  .step-content .note {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* RELANCE */
+  .relance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .relance-grid { grid-template-columns: 1fr; } }
+
+  .relance-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .relance-header {
+    padding: 12px 18px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #fff;
+  }
+  .relance-header.parrains { background: var(--bleu); }
+  .relance-header.membres  { background: var(--vert); }
+
+  .relance-body {
+    padding: 16px 18px;
+    font-size: 0.82rem;
+    color: var(--texte);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .relance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .relance-row:last-child { border-bottom: none; }
+  .relance-label { color: var(--muted); font-size: 0.78rem; }
+  .relance-value { font-weight: 500; font-size: 0.82rem; }
+
+  /* MODE TEST */
+  .mode-test-box {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--vert);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 22px;
+    font-size: 0.85rem;
+  }
+  .mode-test-box strong { color: var(--vert); }
+  .mode-test-box ul {
+    margin-top: 10px;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: var(--muted);
+  }
+  .mode-test-box li strong { color: var(--texte); }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    background: #fff;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Apps Script</div>
+  <h1>Les Enfants de Pondypatch</h1>
+  <p>Organisation des scripts · Emails · Relances · Déclencheurs</p>
+</header>
+
+<div class="container">
+
+  <!-- FICHIERS -->
+  <div class="section-title">📁 Organisation des fichiers</div>
+  <div class="files-grid">
+
+    <div class="file-card">
+      <div class="file-name">Config.gs</div>
+      <ul class="file-fns">
+        <li>CONFIG — toutes les constantes globales</li>
+        <li>IDs feuilles, formulaires, colonnes</li>
+        <li>Paramètres emails, délais, montants</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Utils.gs</div>
+      <ul class="file-fns">
+        <li>isAllowedForm_</li>
+        <li>dedupeKeepLast_ / moveRecentFirst_</li>
+        <li>updateDropdown_</li>
+        <li>getImageBlobFromUrl / addSpacer</li>
+        <li>extractDocId</li>
+        <li>moveRowToEnd / checkAndMoveNewRow</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Enfants.gs</div>
+      <ul class="file-fns">
+        <li>mainUpdateKids</li>
+        <li>assignKidIDandCalculateAge</li>
+        <li>UpdateKidsName</li>
+        <li>majTousLesSuivisEtParrainage</li>
+        <li>chercherEnfant</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Parrains.gs</div>
+      <ul class="file-fns">
+        <li>mainUpdateSponsors</li>
+        <li>assignSponsorIDs</li>
+        <li>UpdateSponsors</li>
+        <li>chercherParrain</li>
+        <li>envoyerLienPaiementAuxParrains</li>
+        <li>envoyerRelanceIndividuelle</li>
+        <li>relancerTousLesEligibles</li>
+        <li>envoyerRecapMensuelRelances</li>
+        <li>joursDepuis</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Parrainages.gs</div>
+      <ul class="file-fns">
+        <li>processSponsorshipSubmission</li>
+        <li>markParrainageFinished</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Entretiens.gs</div>
+      <ul class="file-fns">
+        <li>processRdvSuivi</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">CR.gs</div>
+      <ul class="file-fns">
+        <li>genererCRPourCetteLigne</li>
+        <li>genererCRProtege</li>
+        <li>ecrireLienEnvoiDansSheet</li>
+        <li>ouvrirSidebarEnvoi</li>
+        <li>envoyerCRParrain</li>
+        <li>envoi_CR_Parrain</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Emails.gs</div>
+      <ul class="file-fns">
+        <li>getLogoBase64</li>
+        <li>_buildEmailHtml</li>
+        <li>getTemplateAppelCotisation</li>
+        <li>getTemplateRelance</li>
+        <li>getTemplateAppelCotisationAnnuelle</li>
+        <li>getTemplateRelanceMembre</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">HelloAsso.gs</div>
+      <ul class="file-fns">
+        <li>getAccessToken</li>
+        <li>getSlugsCampagneSemestre / getSlugCotisationAnnee</li>
+        <li>exportToSheets / exportCotisationToSheets</li>
+        <li>traiterWebhookHelloAsso</li>
+        <li>_traiterWebhookParrainage / Cotisation</li>
+        <li>_traiterPaiementParrainage / Cotisation</li>
+        <li>_exportSlugToSheet</li>
+        <li>_ajouterOuMettreAJourPaiementSheet</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Paiements.gs</div>
+      <ul class="file-fns">
+        <li>getSemestreEnCours</li>
+        <li>calculerStatut / calculerStatutCotisation</li>
+        <li>getLienCampagne / getLienCotisation</li>
+        <li>getParrainsActifsIds</li>
+        <li>indexerPaiementsHelloAsso / indexerPaiementsManuels</li>
+        <li>mergeParrainages / mergeCotisations</li>
+        <li>processPaiementManuel</li>
+        <li>_getEmailDepuisNom</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Membres.gs</div>
+      <ul class="file-fns">
+        <li>getMembersList</li>
+        <li>_updateFormMembresDropdown</li>
+        <li>envoyerAppelCotisationAuxMembres</li>
+        <li>relancerMembresEligibles</li>
+        <li>pauseAntiSpam</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Trigger.gs</div>
+      <ul class="file-fns">
+        <li>onOpen — menus Sheet (CR Enfants + Parrainages)</li>
+        <li>processNewSubmission</li>
+        <li>MajOngletSuivi</li>
+        <li>declencheurValidationSemestrielle</li>
+        <li>declencheurRecapMensuel</li>
+        <li>declencheurRelanceMembres</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Dashboard.gs</div>
+      <ul class="file-fns">
+        <li>buildDashboardData</li>
+        <li>calculerProfilEnfants</li>
+        <li>buildMembresData / buildCotisationsData</li>
+        <li>getCRsData</li>
+        <li>serveDashboardData</li>
+        <li>getSheetRows / countDistinct</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">WebApp.gs</div>
+      <ul class="file-fns">
+        <li>doGet — routeur pages dashboard</li>
+        <li>doPost — appelle traiterWebhookHelloAsso</li>
+      </ul>
+    </div>
+
+    <div class="file-card">
+      <div class="file-name">Tests.gs</div>
+      <ul class="file-fns">
+        <li>testerConnexionHelloAsso</li>
+        <li>testerLogo</li>
+        <li>testerRechercheCampagnes</li>
+        <li>testerTemplatesEmails</li>
+        <li>testerTemplateRelanceMembre</li>
+        <li>testerSynchronisationComplete</li>
+        <li>debugExportCotisation</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- DECLENCHEURS -->
+  <div class="section-title">⚡ Déclencheurs à paramétrer</div>
+  <table class="triggers-table">
+    <thead>
+      <tr>
+        <th>Fonction</th>
+        <th>Type</th>
+        <th>Fréquence</th>
+        <th>Condition interne</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>processNewSubmission</strong></td>
+        <td><span class="tag tag-form">À la soumission</span></td>
+        <td>× 7 formulaires</td>
+        <td>switch sur sheetName</td>
+      </tr>
+      <tr>
+        <td><strong>MajOngletSuivi</strong></td>
+        <td><span class="tag tag-daily">Quotidien</span></td>
+        <td>1h–2h du matin</td>
+        <td>— synchronise tout + recalcule les âges</td>
+      </tr>
+      <tr>
+        <td><strong>declencheurValidationSemestrielle</strong></td>
+        <td><span class="tag tag-monthly">Mensuel</span></td>
+        <td>1er du mois</td>
+        <td>Agit si mois = janvier ou juillet</td>
+      </tr>
+      <tr>
+        <td><strong>declencheurRecapMensuel</strong></td>
+        <td><span class="tag tag-monthly">Mensuel</span></td>
+        <td>1er du mois</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>declencheurRelanceMembres</strong></td>
+        <td><span class="tag tag-monthly">Mensuel</span></td>
+        <td>1er du mois</td>
+        <td>Agit si mois = juillet</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- EMAILS DIRECTION -->
+  <div class="section-title">📨 Emails envoyés à la direction</div>
+  <div class="flow-section">
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div>
+          <h3>🗓️ Rappel création campagnes HelloAsso</h3>
+          <p>declencheurValidationSemestrielle — janvier et juillet</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">Le déclencheur mensuel s'exécute le 1er de chaque mois</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">Si le mois est <strong>janvier</strong> : rappel pour créer la campagne parrainage S1 <em>et</em> la campagne cotisation annuelle</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">Si le mois est <strong>juillet</strong> : rappel pour créer la campagne parrainage S2 uniquement</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">4</div>
+            <div class="step-content">Email HTML envoyé à <strong>EMAILS_DIRECTION</strong> avec les titres et slugs exacts à saisir sur HelloAsso
+              <div class="note">Une fois la campagne créée sur HelloAsso, le webhook détecte automatiquement et envoie les emails aux parrains/membres</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div>
+          <h3>📊 Récapitulatif mensuel des impayés parrains</h3>
+          <p>declencheurRecapMensuel — chaque mois</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">Le 1er de chaque mois, liste tous les parrains actifs avec un paiement en retard</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">Email récapitulatif envoyé à <strong>EMAIL_DIRIGEANT</strong> avec un bouton de relance individuelle par parrain</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">La direction peut déclencher une relance individuelle directement depuis l'email, sans ouvrir le Sheet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div>
+          <h3>✅ Confirmation webhook HelloAsso</h3>
+          <p>traiterWebhookHelloAsso — à chaque paiement détecté</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">HelloAsso envoie un webhook à chaque nouvelle campagne créée ou paiement reçu</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">Si c'est une <strong>nouvelle campagne parrainage</strong> : emails envoyés automatiquement aux parrains actifs + confirmation à la direction</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">Si c'est une <strong>nouvelle campagne cotisation</strong> : emails envoyés automatiquement aux membres + confirmation à la direction</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EMAILS PARRAINS -->
+  <div class="section-title">💛 Emails envoyés aux parrains</div>
+  <div class="flow-section">
+
+    <div class="flow-card">
+      <div class="flow-header vert">
+        <div>
+          <h3>📧 Appel à cotisation semestrielle</h3>
+          <p>envoyerLienPaiementAuxParrains — déclenché par le webhook</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">HelloAsso détecte la nouvelle campagne parrainage → webhook reçu</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">Récupère la liste de tous les <strong>parrains actifs</strong> (statut Ongoing dans Fiche_Parrainage)</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">Envoie à chacun un email HTML avec le <strong>lien de paiement HelloAsso</strong> pour le semestre en cours
+              <div class="note">Pause anti-spam entre chaque envoi pour éviter les limitations Gmail</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header orange">
+        <div>
+          <h3>🔔 Relance parrain en retard</h3>
+          <p>envoyerRelanceIndividuelle / relancerTousLesEligibles</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">Peut être déclenchée <strong>manuellement</strong> depuis le récap mensuel (bouton par parrain) ou en masse depuis le menu Sheet</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">Vérifie que le parrain n'a pas déjà été relancé dans les <strong>30 derniers jours</strong> (DELAI_RELANCE_JOURS dans CONFIG)
+              <div class="note">La date du dernier envoi est stockée dans ScriptProperties</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">Si éligible : envoie un email de relance avec le lien de paiement pour le semestre en cours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EMAILS MEMBRES -->
+  <div class="section-title">💚 Emails envoyés aux membres</div>
+  <div class="flow-section">
+
+    <div class="flow-card">
+      <div class="flow-header vert">
+        <div>
+          <h3>📧 Appel à cotisation annuelle</h3>
+          <p>envoyerAppelCotisationAuxMembres — déclenché par le webhook</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">HelloAsso détecte la nouvelle campagne cotisation annuelle → webhook reçu</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">Récupère la liste de tous les membres depuis l'onglet <strong>Membres</strong></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">Envoie à chacun un email HTML avec le <strong>lien de paiement HelloAsso</strong> pour l'adhésion annuelle
+              <div class="note">Participation libre à partir du montant minimum défini dans CONFIG</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header orange">
+        <div>
+          <h3>🔔 Relance membre en retard</h3>
+          <p>envoyerRecapMensuelRelancesMembres + relancerMembreIndividuel</p>
+        </div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">Le 1er juillet, <strong>declencheurRelanceMembres</strong> s'exécute et envoie un récap à la direction listant tous les membres sans cotisation</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">La direction reçoit un email avec un <strong>bouton Relancer</strong> par membre — rien ne part sans validation</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">En cliquant, la Web App appelle <strong>relancerMembreIndividuel(email)</strong> et affiche une confirmation
+              <div class="note">Identifié par email — délai minimum 180 jours stocké dans ScriptProperties</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SYSTEME DE RELANCE -->
+  <div class="section-title">🔁 Système de relance comparé</div>
+  <div class="relance-grid">
+
+    <div class="relance-card">
+      <div class="relance-header parrains">💛 Parrains</div>
+      <div class="relance-body">
+        <div class="relance-row">
+          <span class="relance-label">Déclenchement</span>
+          <span class="relance-value">Manuel ou mensuel</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Délai minimum</span>
+          <span class="relance-value">30 jours</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Condition</span>
+          <span class="relance-value">Paiement semestre absent</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Récap direction</span>
+          <span class="relance-value">Oui — chaque mois</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Relance individuelle</span>
+          <span class="relance-value">Oui — depuis l'email</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Clé identification</span>
+          <span class="relance-value">SPONSOR_ID</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Stockage anti-doublon</span>
+          <span class="relance-value">ScriptProperties</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="relance-card">
+      <div class="relance-header membres">💚 Membres</div>
+      <div class="relance-body">
+        <div class="relance-row">
+          <span class="relance-label">Déclenchement</span>
+          <span class="relance-value">Automatique — juillet</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Délai minimum</span>
+          <span class="relance-value">180 jours (6 mois)</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Condition</span>
+          <span class="relance-value">Cotisation annuelle absente</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Récap direction</span>
+          <span class="relance-value">Oui — juillet</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Relance individuelle</span>
+          <span class="relance-value">Oui — depuis l'email</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Clé identification</span>
+          <span class="relance-value">Email</span>
+        </div>
+        <div class="relance-row">
+          <span class="relance-label">Stockage anti-doublon</span>
+          <span class="relance-value">ScriptProperties</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MENUS SHEET -->
+  <div class="section-title">🗂️ Menus Google Sheet (onOpen)</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px;">
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div><h3>📋 CR Enfants</h3></div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Générer les CR manquants<div class="note">genererCRPourCetteLigne</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Envoyer le CR de cette ligne<div class="note">ouvrirSidebarEnvoi</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-header bleu">
+        <div><h3>🤖 Parrainages</h3></div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Synchroniser maintenant<div class="note">MajOngletSuivi</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Forcer recherche campagne<div class="note">forcerRechercheEtExport</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Envoyer appel cotisation parrains<div class="note">envoyerLienPaiementAuxParrains</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Envoyer appel cotisation membres<div class="note">envoyerAppelCotisationAuxMembres</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Relancer tous les parrains éligibles<div class="note">relancerTousLesEligibles</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Relancer les membres en retard<div class="note">relancerMembresEligibles</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">→</div>
+            <div class="step-content">Tester les templates emails<div class="note">testerTemplatesEmails</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODE TEST -->
+  <div class="section-title">🧪 Mode test</div>
+  <div class="mode-test-box">
+    <strong>MODE_TEST: true</strong> dans Config.gs — tous les emails sont redirigés vers <strong>EMAIL_TEST</strong> sans exception.
+    <ul>
+      <li><strong>Emails parrains</strong> → EMAIL_TEST</li>
+      <li><strong>Emails membres</strong> → EMAIL_TEST</li>
+      <li><strong>Emails direction</strong> (webhook, récap, validation semestrielle) → EMAIL_TEST</li>
+      <li><strong>Objet préfixé</strong> "TEST — " pour identification immédiate</li>
+      <li><strong>Aucune donnée réelle</strong> n'est envoyée à un vrai destinataire</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  Les Enfants de Pondypatch — Apps Script · Google Sheets · HelloAsso · Google Drive
+</footer>
+
+</body>
+</html>
