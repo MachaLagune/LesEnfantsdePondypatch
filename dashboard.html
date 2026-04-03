@@ -429,10 +429,10 @@
 
 <!-- ONGLETS NAV -->
 <div class="tabs-nav">
-  <button class="tab-btn active" onclick="switchTab('parrainages', this)">📊 Parrainages</button>
-  <button class="tab-btn" onclick="switchTab('membres', this)">👥 Membres & Cotisations</button>
-  <button class="tab-btn" onclick="switchTab('cotisations', this)">💰 Cotisations Parrainage</button>
-  <button class="tab-btn" id="tab-btn-diagnostic" onclick="switchTab('diagnostic', this)">⚠️ Diagnostic</button>
+  <button class="tab-btn active" onclick="switchTab('parrainages', this)">Parrainages</button>
+  <button class="tab-btn" onclick="switchTab('membres', this)">Membres & Cotisations</button>
+  <button class="tab-btn" onclick="switchTab('cotisations', this)">Cotisations Parrainage</button>
+  <button class="tab-btn" id="tab-btn-diagnostic" onclick="switchTab('diagnostic', this)">Diagnostic</button>
 </div>
 
 <!-- ══ ONGLET PARRAINAGES ══ -->
@@ -538,7 +538,7 @@
     <div class="filter-pills">
       <button class="filter-pill active-all" onclick="setFilter('all', this)">Tous</button>
       <button class="filter-pill" onclick="setFilter('Ongoing', this)">🟢 En cours</button>
-      <button class="filter-pill" onclick="setFilter('Finished', this)">⚫ Archivés</button>
+      <button class="filter-pill" onclick="setFilter('Finished', this)">⚫ Terminés</button>
     </div>
   </div>
   <div class="charts-grid">
@@ -671,6 +671,11 @@
         <span class="sc-value val-rouge" id="sc-membres-retard">—</span>
         <div class="sc-sub sc-sub-light">cotisation manquante</div>
       </div>
+      <div class="scorecard-light accent-jaune">
+        <div class="sc-label sc-label-light">Total collecté</div>
+        <span class="sc-value val-jaune" id="sc-membres-collecte">—</span>
+        <div class="sc-sub sc-sub-light">cotisations <span id="sc-membres-annee"></span></div>
+      </div>
     </div>
 
     <!-- Alerte retards supprimée -->
@@ -701,6 +706,7 @@
             <th>Prénom</th>
             <th>Email</th>
             <th>Cotisation <span id="annee-cotisation"></span></th>
+            <th>Dernière relance</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -802,6 +808,7 @@
             <th>Attendu</th>
             <th>Payé</th>
             <th>Date paiement</th>
+            <th>Dernière relance</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -850,10 +857,10 @@
         <span class="sc-value val-orange" id="diag-email-diff">—</span>
         <div class="sc-sub sc-sub-light">correspondances approximatives</div>
       </div>
-      <div class="scorecard-light accent-rouge">
-        <div class="sc-label sc-label-light">Parrainage sans parrain</div>
-        <span class="sc-value val-rouge" id="diag-parrainage-sans-parrain">—</span>
-        <div class="sc-sub sc-sub-light">non réconciliés</div>
+      <div class="scorecard-light accent-orange">
+        <div class="sc-label sc-label-light">HelloAsso sans parrain</div>
+        <span class="sc-value val-orange" id="diag-helloasso-sans-parrain">—</span>
+        <div class="sc-sub sc-sub-light">paiements non identifiés</div>
       </div>
       <div class="scorecard-light" id="diag-scorecard-ok" style="border-top:3px solid var(--vert)">
         <div class="sc-label sc-label-light">Statut global</div>
@@ -877,7 +884,7 @@
           <option value="">Tous les types</option>
           <option value="cotisation-sans-membre">Cotisation sans membre</option>
           <option value="email-different">Email différent</option>
-          <option value="parrainage-sans-parrain">Parrainage sans parrain</option>
+          <option value="helloasso-sans-parrain">HelloAsso sans parrain</option>
         </select>
       </div>
     </div>
@@ -1065,9 +1072,14 @@ function renderBar(id, labels, values, color) {
 // ══════════════════════════════════════════
 // ÉTAT RELANCES
 // ══════════════════════════════════════════
-const relancedIds = new Set();
-function markRelanced(email) { if (email) relancedIds.add(String(email).toLowerCase().trim()); }
-function isRelanced(email)   { return !!email && relancedIds.has(String(email).toLowerCase().trim()); }
+const relancedMap = new Map();
+function markRelanced(email) { if (email) relancedMap.set(String(email).toLowerCase().trim(), new Date()); }
+function isRelanced(email)   { return !!email && relancedMap.has(String(email).toLowerCase().trim()); }
+function getRelanceDate(email) {
+  const d = email && relancedMap.get(String(email).toLowerCase().trim());
+  if (!d) return null;
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
 
 function btnRelance({ url, label, couleur, email }) {
   if (!url) return '—';
@@ -1230,7 +1242,7 @@ function renderCotisations(c) {
 function renderTableCotisations(liste) {
   const tbody = document.getElementById('tbody-cotisations');
   if (!liste.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Aucun résultat</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Aucun résultat</td></tr>';
     return;
   }
   const rows = [];
@@ -1238,7 +1250,10 @@ function renderTableCotisations(liste) {
     p.lignes.forEach((l, i) => {
       const grise = !p.eligible || isRelanced(p.email);
       const actionCell = i === 0
-        ? `<td rowspan="${p.lignes.length}" style="vertical-align:top;padding-top:14px">
+        ? `<td rowspan="${p.lignes.length}" style="vertical-align:top;padding-top:14px;font-size:11px;color:var(--muted);white-space:nowrap">
+            ${getRelanceDate(p.email) ? '🕐 ' + getRelanceDate(p.email) : '—'}
+           </td>
+           <td rowspan="${p.lignes.length}" style="vertical-align:top;padding-top:14px">
             ${!p.aJour && p.hyperlinkRelance
               ? grise
                 ? '<span class="btn-relance-done">✓ Relancé récemment</span>'
@@ -1292,7 +1307,9 @@ function renderMembres(m) {
   animateNum('sc-total-membres',  m.total              || 0);
   animateNum('sc-membres-actifs', m.actifs             || 0);
   animateNum('sc-membres-retard', (m.enRetard || []).length);
-  document.getElementById('annee-cotisation').textContent = m.anneeEnCours || '';
+  document.getElementById('annee-cotisation').textContent    = m.anneeEnCours || '';
+  document.getElementById('sc-membres-collecte').textContent = (m.totalCollecte || 0) + ' €';
+  document.getElementById('sc-membres-annee').textContent    = m.anneeEnCours || '';
   renderTableMembres(membresData);
   updateBtnRelancerMembres();
 }
@@ -1300,7 +1317,7 @@ function renderMembres(m) {
 function renderTableMembres(liste) {
   const tbody = document.getElementById('tbody-membres');
   if (!liste.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Aucun membre trouvé</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Aucun membre trouvé</td></tr>';
     return;
   }
   tbody.innerHTML = liste.map(m => {
@@ -1310,6 +1327,7 @@ function renderTableMembres(liste) {
       <td>${m.prenom || '—'}</td>
       <td style="color:var(--muted)">${m.email || '—'}</td>
       <td><span class="badge ${m.cotisationOk ? 'badge-ok' : 'badge-retard'}">${m.cotisationOk ? '✓ À jour' : '⚠ En retard'}</span></td>
+      <td style="color:var(--muted);font-size:11px">${getRelanceDate(m.email) ? '🕐 ' + getRelanceDate(m.email) : '—'}</td>
       <td>${!m.cotisationOk && m.urlRelance
         ? grise
           ? '<span class="btn-relance-done">✓ Relancé récemment</span>'
@@ -1381,13 +1399,13 @@ function renderDiagnostic(result) {
   diagnosticData = (result && result.alertes) || [];
   const total    = result.total || 0;
 
-  const cotis   = diagnosticData.filter(a => a.type === 'cotisation-sans-membre').length;
-  const emailD  = diagnosticData.filter(a => a.type === 'email-different').length;
-  const parrain = diagnosticData.filter(a => a.type === 'parrainage-sans-parrain').length;
+  const cotis      = diagnosticData.filter(a => a.type === 'cotisation-sans-membre').length;
+  const emailD     = diagnosticData.filter(a => a.type === 'email-different').length;
+  const helloasso  = diagnosticData.filter(a => a.type === 'helloasso-sans-parrain').length;
 
-  document.getElementById('diag-cotis-sans-membre').textContent      = cotis;
-  document.getElementById('diag-email-diff').textContent             = emailD;
-  document.getElementById('diag-parrainage-sans-parrain').textContent = parrain;
+  document.getElementById('diag-cotis-sans-membre').textContent       = cotis;
+  document.getElementById('diag-email-diff').textContent              = emailD;
+  document.getElementById('diag-helloasso-sans-parrain').textContent   = helloasso;
   document.getElementById('diag-total').textContent                   = total;
 
   const okCard      = document.getElementById('diag-scorecard-ok');
@@ -1432,6 +1450,7 @@ function renderTableDiagnostic(liste) {
     'cotisation-sans-membre':  { label: '⚠️ Cotisation sans membre',  color: 'var(--rouge)',  bg: 'var(--rouge-clair)'  },
     'email-different':         { label: '📧 Email différent',         color: 'var(--orange)', bg: 'var(--orange-clair)' },
     'parrainage-sans-parrain': { label: '⚠️ Parrainage sans parrain', color: 'var(--rouge)',  bg: 'var(--rouge-clair)'  },
+    'helloasso-sans-parrain':  { label: '💳 HelloAsso sans parrain',  color: 'var(--orange)', bg: 'var(--orange-clair)' },
   };
   tbody.innerHTML = liste.map(a => {
     const cfg = typeConfig[a.type] || { label: a.type, color: 'var(--muted)', bg: '#f0f0f0' };
@@ -1468,10 +1487,10 @@ function renderTableCRs(liste) {
   tbody.innerHTML = liste.map(cr => {
     const cfg = statutConfig[cr.crStatut] || { color: 'var(--muted)', bg: '#f0f0f0', label: cr.crStatut || '—' };
     const btnCR = cr.crUrl
-      ? `<a href="${cr.crUrl}" target="_blank" style="display:inline-block;background:var(--bleu-clair);color:var(--bleu-fonce);padding:4px 12px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700">📄 Voir/Modifier</a>`
+      ? `<a href="${cr.crUrl}" target="_blank" style="display:inline-block;background:var(--bleu-clair);color:var(--bleu-fonce);padding:4px 12px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700">📄 Voir</a>`
       : '—';
     const btnAction = cr.validationUrl
-      ? `<a href="${cr.validationUrl}" target="_blank" style="display:inline-block;background:var(--bleu-fonce);color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700">✉ Envoyer</a>`
+      ? `<a href="${cr.validationUrl}" target="_blank" style="display:inline-block;background:var(--bleu-fonce);color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700">✉ Valider & envoyer</a>`
       : '—';
     return `<tr>
       <td style="font-weight:700">${cr.kidName}</td>
