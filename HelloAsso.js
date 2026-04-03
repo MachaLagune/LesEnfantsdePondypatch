@@ -12,26 +12,56 @@ function getAccessToken() {
     return tokenCache;
   }
 
-  const response = UrlFetchApp.fetch("https://api.helloasso.com/oauth2/token", {
-    method: "post",
-    contentType: "application/x-www-form-urlencoded",
-    payload: {
-      grant_type:    "client_credentials",
-      client_id:     CONFIG.CLIENT_ID,
-      client_secret: CONFIG.CLIENT_SECRET
-    },
-    muteHttpExceptions: true
-  });
+  const maxRetries = 3;
+  let lastError = null;
 
-  const data = JSON.parse(response.getContentText());
-  if (!data.access_token) throw new Error("❌ Erreur token : " + response.getContentText());
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const response = UrlFetchApp.fetch("https://api.helloasso.com/oauth2/token", {
+      method: "post",
+      contentType: "application/x-www-form-urlencoded",
+      payload: {
+        grant_type:    "client_credentials",
+        client_id:     CONFIG.CLIENT_ID,
+        client_secret: CONFIG.CLIENT_SECRET
+      },
+      muteHttpExceptions: true
+    });
 
-  const expiry = new Date().getTime() + (data.expires_in || 1800) * 1000;
-  props.setProperty("HA_ACCESS_TOKEN", data.access_token);
-  props.setProperty("HA_TOKEN_EXPIRY", expiry.toString());
+    const statusCode = response.getResponseCode();
+    const rawText    = response.getContentText();
 
-  Logger.log("✅ Nouveau token HelloAsso obtenu.");
-  return data.access_token;
+    // Vérifier que c'est bien du JSON avant de parser
+    if (statusCode === 429 || rawText.includes("error code:")) {
+      lastError = `HTTP ${statusCode} — Cloudflare/rate limit: ${rawText}`;
+      Logger.log(`⚠️ Tentative ${attempt}/${maxRetries} échouée : ${lastError}`);
+      if (attempt < maxRetries) Utilities.sleep(attempt * 3000); // 3s, 6s
+      continue;
+    }
+
+    if (statusCode !== 200) {
+      throw new Error(`❌ Erreur HTTP ${statusCode} : ${rawText}`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      throw new Error(`❌ Réponse non-JSON (${statusCode}) : ${rawText}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error(`❌ Token absent dans la réponse : ${rawText}`);
+    }
+
+    const expiry = new Date().getTime() + (data.expires_in || 1800) * 1000;
+    props.setProperty("HA_ACCESS_TOKEN", data.access_token);
+    props.setProperty("HA_TOKEN_EXPIRY", expiry.toString());
+
+    Logger.log("✅ Nouveau token HelloAsso obtenu.");
+    return data.access_token;
+  }
+
+  throw new Error(`❌ Impossible d'obtenir un token après ${maxRetries} tentatives. Dernière erreur : ${lastError}`);
 }
 
 
@@ -662,91 +692,7 @@ function buildDiagnostic() {
   return lignes.length;
 }
 
-// ════════════════════════════════════════════════════
-//  POUR LE DASHBOARD (retourne les données sans écrire)
-// ════════════════════════════════════════════════════
 
-function buildDiagnosticData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-  const parrains = getSheetRowsByName(ss, CONFIG.SHEET_PARRAIN);
-  const membres  = getSheetRowsByName(ss, CONFIG.SHEET_MEMBRES);
-  const cotis    = getSheetRowsByName(ss, CONFIG.SHEET_COTISATIONS_MERGED);
-  const suivi    = getSheetRowsByName(ss, CONFIG.SHEET_SUIVI);
-
-  const cotisEmail   = getHeaderName(ss, CONFIG.SHEET_COTISATIONS_MERGED, CONFIG.COLS.COTISATIONS_MERGED.EMAIL);
-  const cotisNom     = getHeaderName(ss, CONFIG.SHEET_COTISATIONS_MERGED, CONFIG.COLS.COTISATIONS_MERGED.NOM);
-  const cotisPrenom  = getHeaderName(ss, CONFIG.SHEET_COTISATIONS_MERGED, CONFIG.COLS.COTISATIONS_MERGED.PRENOM);
-
-  const membreEmail  = getHeaderName(ss, CONFIG.SHEET_MEMBRES, CONFIG.COLS.MEMBRES.ADRESSE_MAIL);
-  const membreNom    = getHeaderName(ss, CONFIG.SHEET_MEMBRES, CONFIG.COLS.MEMBRES.MEMBRE_NAME);
-  const membrePrenom = getHeaderName(ss, CONFIG.SHEET_MEMBRES, CONFIG.COLS.MEMBRES.MEMBRE_FIRSTNAME);
-
-  const parrainEmail = getHeaderName(ss, CONFIG.SHEET_PARRAIN, CONFIG.COLS.PARRAIN.ADRESSE_MAIL);
-  const parrainNom   = getHeaderName(ss, CONFIG.SHEET_PARRAIN, CONFIG.COLS.PARRAIN.SPONSOR_NAME);
-
-  const suiviEmail   = getHeaderName(ss, CONFIG.SHEET_SUIVI, CONFIG.COLS.SUIVI.ADRESSE_MAIL);
-  const suiviNom     = getHeaderName(ss, CONFIG.SHEET_SUIVI, CONFIG.COLS.SUIVI.SPONSOR_NAME);
-
-  const alertes = [];
-
-  // cotisations-merged vs membres
-  cotis.forEach(c => {
-    const nomComplet   = ((c[cotisNom] || '') + ' ' + (c[cotisPrenom] || '')).trim();
-    const trouveMembre = trouverMembrePourCotisation(
-      c, membres,
-      cotisEmail, cotisNom, cotisPrenom,
-      membreEmail, membreNom, membrePrenom
-    );
-
-    if (!trouveMembre) {
-      alertes.push({
-        type:     'cotisation-sans-membre',
-        probleme: 'Cotisation sans membre',
-        nom:      nomComplet,
-        email:    c[cotisEmail] || '',
-        detail:   'Absent de la liste membres'
-      });
-    } else if (normaliser(trouveMembre[membreEmail]) !== normaliser(c[cotisEmail] || '')) {
-      alertes.push({
-        type:     'email-different',
-        probleme: 'Email différent (cotisation/membre)',
-        nom:      nomComplet,
-        email:    c[cotisEmail] || '',
-        detail:   'Email dans membres : ' + trouveMembre[membreEmail]
-      });
-    }
-  });
-
-  // suivi_parrainages vs parrains
-  suivi.forEach(s => {
-    const trouveParrain = trouverParrainPourSuivi(
-      s, parrains,
-      suiviEmail, suiviNom,
-      parrainEmail, parrainNom
-    );
-
-    if (!trouveParrain) {
-      alertes.push({
-        type:     'parrainage-sans-parrain',
-        probleme: 'Parrainage sans parrain',
-        nom:      s[suiviNom]   || '',
-        email:    s[suiviEmail] || '',
-        detail:   'Absent de la liste parrains'
-      });
-    } else if (normaliser(trouveParrain[parrainEmail]) !== normaliser(s[suiviEmail] || '')) {
-      alertes.push({
-        type:     'email-different',
-        probleme: 'Email différent (parrainage/parrain)',
-        nom:      s[suiviNom]   || '',
-        email:    s[suiviEmail] || '',
-        detail:   'Email dans parrains : ' + trouveParrain[parrainEmail]
-      });
-    }
-  });
-
-  return { alertes, total: alertes.length, ok: alertes.length === 0 };
-}
 
 // ════════════════════════════════════════════════════
 //  POINT D'ENTRÉE MANUEL
