@@ -104,7 +104,7 @@
   .forms-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-top:8px; }
   .form-card {
     background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
-    padding:18px; display:flex; gap:14px; align-items:flex-start;
+    padding:18px; display:flex; gap:14px; align-items:stretch;
     transition:box-shadow 0.2s, transform 0.2s, border-color 0.2s;
     opacity:0; animation:riseIn 0.4s ease forwards; cursor:pointer;
   }
@@ -117,9 +117,9 @@
   .form-card:nth-child(7){animation-delay:.35s}
 
   .fc-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-  .fc-body { flex:1; }
+  .fc-body { flex:1; display:flex; flex-direction:column; }
   .fc-body h4 { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:var(--texte); margin-bottom:4px; }
-  .fc-body p  { font-size:11px; color:var(--muted); line-height:1.55; }
+  .fc-body p  { font-size:11px; color:var(--muted); line-height:1.55; flex:1; }
   .fc-tag { display:inline-block; font-family:'Nunito',sans-serif; font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:8px; margin-top:5px; }
   .tag-form   { background:var(--bleu-clair);   color:var(--bleu); }
   .tag-manuel { background:var(--jaune-clair);  color:#9A7200; }
@@ -148,7 +148,7 @@
 <main>
 
   <div class="note-box">
-    <div class="note-box-icon">💡</div>
+    <div class="note-box-icon"></div>
     <div><strong>Comment lire ce process</strong> — Chaque étape indique si c'est une action manuelle (formulaire à remplir) ou une action automatique déclenchée par le système. <strong>Cliquez sur n'importe quel formulaire pour l'ouvrir directement.</strong></div>
   </div>
 
@@ -160,7 +160,7 @@
       <div class="step-num num-bleu">1</div>
       <div class="step-card card-bleu">
         <div>
-          <div class="step-header"><span class="step-icon">👶</span><span class="step-name">Enregistrer l'enfant</span></div>
+          <div class="step-header"><span class="step-icon"></span><span class="step-name">Enregistrer l'enfant</span></div>
           <div class="step-desc">Saisir les informations de l'enfant. Un <strong>identifiant unique</strong> lui est attribué automatiquement.</div>
           <div class="form-box" onclick="window.open('https://docs.google.com/forms/d/1EFfX_YdS_LTkVyQOVEw5YtyDqoKF2YUS5qjotNepznc/viewform','_blank')">
             <span class="form-box-icon">📋</span>
@@ -168,14 +168,14 @@
             <span class="form-box-arrow">↗</span>
           </div>
         </div>
-        <div class="step-right"><span class="pill pill-form">📋 Formulaire</span><span class="pill pill-auto">⚡ Auto ID</span></div>
+        <div class="step-right"><span class="pill pill-form"> Formulaire</span><span class="pill pill-auto">⚡ Auto ID</span></div>
       </div>
     </div>
     <div class="step">
       <div class="step-num num-bleu">2</div>
       <div class="step-card card-bleu">
         <div>
-          <div class="step-header"><span class="step-icon">🤝</span><span class="step-name">Enregistrer le parrain / la marraine</span></div>
+          <div class="step-header"><span class="step-icon"></span><span class="step-name">Enregistrer le parrain / la marraine</span></div>
           <div class="step-desc">Saisir les coordonnées du parrain. Les <strong>listes déroulantes</strong> de tous les formulaires sont mises à jour automatiquement.</div>
           <div class="form-box" onclick="window.open('https://docs.google.com/forms/d/1Y6ok1UqCBPcQmfcQ56S1ErWJrMmIVTZNUtwpgD4hIHM/viewform','_blank')">
             <span class="form-box-icon">📋</span>
@@ -198,7 +198,7 @@
             <span class="form-box-arrow">↗</span>
           </div>
         </div>
-        <div class="step-right"><span class="pill pill-form">📋 Formulaire</span><span class="pill pill-auto">⚡ Suivi auto</span></div>
+        <div class="step-right"><span class="pill pill-form"> Formulaire</span><span class="pill pill-auto">⚡ Suivi auto</span></div>
       </div>
     </div>
   </div>
@@ -211,27 +211,16 @@
       <div class="step-num num-jaune">4</div>
       <div class="step-card card-jaune">
         <div>
-          <div class="step-header"><span class="step-icon">🗣️</span><span class="step-name">Mener et enregistrer un entretien de suivi</span></div>
-          <div class="step-desc">Après chaque entretien, saisir le compte-rendu. Le <strong>CR est généré automatiquement</strong> et une notification est envoyée à la Direction.</div>
+          <div class="step-header"><span class="step-icon"></span><span class="step-name">Mener et enregistrer un entretien de suivi</span></div>
+          <div class="step-desc">Lors d'un entretien, remplir le formumlaire. Le <strong>CR est généré automatiquement</strong> et peut être modifié puis validé et envoyé par le site internet.</div>
           <div class="form-box" onclick="window.open('https://docs.google.com/forms/d/1I4-zBU3RdXsgVDfwPxm4Di7ZNKt4P4F2CBpiMjgYlAw/viewform','_blank')">
-            <span class="form-box-icon">📋</span>
+            <span class="form-box-icon"></span>
             <div><div class="form-box-text">Formulaire : Entretien de suivi</div><div class="form-box-sub">Génération automatique du compte-rendu</div></div>
             <span class="form-box-arrow">↗</span>
           </div>
-          <div class="auto-box"><span class="auto-box-icon">📧</span><div class="auto-box-text">→ Email automatique à la Direction : « CR à valider »</div></div>
+          <div class="auto-box"><span class="auto-box-icon"></span><div class="auto-box-text">→ CR à vérifier, modifier, et valider »</div></div>
         </div>
-        <div class="step-right"><span class="pill pill-form">📋 Formulaire</span><span class="pill pill-auto">⚡ CR auto</span><span class="pill pill-email">📧 Notif email</span></div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num num-jaune">5</div>
-      <div class="step-card card-jaune">
-        <div>
-          <div class="step-header"><span class="step-icon">✅</span><span class="step-name">Valider le compte-rendu</span></div>
-          <div class="step-desc">La Direction reçoit un email avec un <strong>lien de validation direct</strong>. En cliquant, le CR est validé et envoyé automatiquement au parrain.</div>
-          <div class="auto-box"><span class="auto-box-icon">📤</span><div class="auto-box-text">→ CR envoyé automatiquement au parrain après validation</div></div>
-        </div>
-        <div class="step-right"><span class="pill pill-manuel">✏️ Manuel</span><span class="pill pill-auto">⚡ Envoi auto</span></div>
+        <div class="step-right"><span class="pill pill-form">Formulaire</span><span class="pill pill-auto"> CR auto</span></div>
       </div>
     </div>
   </div>
@@ -245,8 +234,8 @@
       <div class="step-card card-violet">
         <div>
           <div class="step-header"><span class="step-icon">💳</span><span class="step-name">Paiement via HelloAsso (automatique)</span></div>
-          <div class="step-desc">Le parrain paie via le lien HelloAsso. Le paiement est <strong>synchronisé chaque nuit</strong>. Si retard : relance automatique tous les 14 jours.</div>
-          <div class="auto-box"><span class="auto-box-icon">⚡</span><div class="auto-box-text">→ Synchronisation automatique nuit + relances auto</div></div>
+          <div class="step-desc">Le parrain paie via le lien HelloAsso. Le paiement est <strong>synchronisé chaque nuit</strong>. Si retard : bouton de relance à cliquer dans le tableau de bord.</div>
+          <div class="auto-box"><span class="auto-box-icon">⚡</span><div class="auto-box-text">→ Synchronisation automatique nuit + relances par le tableau de bord</div></div>
         </div>
         <div class="step-right"><span class="pill pill-auto">⚡ Automatique</span></div>
       </div>
@@ -277,14 +266,14 @@
       <div class="step-card card-rouge">
         <div>
           <div class="step-header"><span class="step-icon">🔚</span><span class="step-name">Clôturer le parrainage</span></div>
-          <div class="step-desc">Remplir le formulaire de fin de parrainage. Le statut passe de <strong>Ongoing → Archivé</strong>. L'enfant est libéré pour un nouveau parrainage potentiel.</div>
+          <div class="step-desc">Remplir le formulaire de fin de parrainage. Le statut passe de <strong>En cours → Terminé</strong>. L'enfant est libéré pour un nouveau parrainage potentiel.</div>
           <div class="form-box" onclick="window.open('https://docs.google.com/forms/d/1JfguhPFqoGFCy27uMtPkjrbDGKTqEnDjszcZvUSPuKw/viewform','_blank')">
             <span class="form-box-icon">📋</span>
             <div><div class="form-box-text">Formulaire : Fin de parrainage</div><div class="form-box-sub">Statut → Archivé · Enfant libéré automatiquement</div></div>
             <span class="form-box-arrow">↗</span>
           </div>
         </div>
-        <div class="step-right"><span class="pill pill-form">📋 Formulaire</span><span class="pill pill-fin">🔚 Clôture</span><span class="pill pill-auto">⚡ Statut auto</span></div>
+        <div class="step-right"><span class="pill pill-form"> Formulaire</span><span class="pill pill-fin">🔚 Clôture</span><span class="pill pill-auto">⚡ Statut auto</span></div>
       </div>
     </div>
   </div>
@@ -299,7 +288,7 @@
     </div>
     <div class="form-card" onclick="window.open('https://docs.google.com/forms/d/1Y6ok1UqCBPcQmfcQ56S1ErWJrMmIVTZNUtwpgD4hIHM/viewform','_blank')">
       <div class="fc-icon" style="background:var(--vert-clair)">🤝</div>
-      <div class="fc-body"><h4>Nouveau parrain</h4><p>Enregistre le parrain et met à jour les listes déroulantes.</p><span class="fc-tag tag-form">📋 Formulaire</span></div>
+      <div class="fc-body"><h4>Nouveau parrain</h4><p>Enregistre le parrain et met à jour les listes déroulantes.</p><span class="fc-tag tag-form"> Formulaire</span></div>
       <span class="fc-arrow">↗</span>
     </div>
     <div class="form-card" onclick="window.open('https://docs.google.com/forms/d/17dFr6URnFbInFKxOzMR6CqBgKI2GyFWGTqkJMz3SlQk/viewform','_blank')">
@@ -309,12 +298,8 @@
     </div>
     <div class="form-card" onclick="window.open('https://docs.google.com/forms/d/1I4-zBU3RdXsgVDfwPxm4Di7ZNKt4P4F2CBpiMjgYlAw/viewform','_blank')">
       <div class="fc-icon" style="background:var(--jaune-clair)">🗣️</div>
-      <div class="fc-body"><h4>Entretien de suivi</h4><p>Génère le CR automatiquement et notifie la Direction.</p><span class="fc-tag tag-form">📋 Formulaire</span></div>
+      <div class="fc-body"><h4>Entretien de suivi</h4><p>Génère le CR automatiquement et affiche son lien dans le dashboard</p><span class="fc-tag tag-form"> Formulaire</span></div>
       <span class="fc-arrow">↗</span>
-    </div>
-    <div class="form-card no-link">
-      <div class="fc-icon" style="background:var(--jaune-clair)">✅</div>
-      <div class="fc-body"><h4>Validation du CR</h4><p>Valide le CR et déclenche l'envoi automatique au parrain.</p><span class="fc-tag tag-manuel">✏️ Action direction</span></div>
     </div>
     <div class="form-card" onclick="window.open('https://docs.google.com/forms/d/1Ci611Y0fB4uckmeIB7Vdorfpw0C97ZN9SRk4M464U4s/viewform','_blank')">
       <div class="fc-icon" style="background:var(--violet-clair)">💰</div>
