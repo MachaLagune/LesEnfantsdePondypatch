@@ -416,7 +416,7 @@ function envoi_CR_Parrain() {
       MailApp.sendEmail({
         to: CONFIG.MODE_TEST ? CONFIG.EMAIL_TEST : parrain.email,
         subject: `${CONFIG.MODE_TEST ? " TEST — " : ""}Compte-rendu de ${kidName}`,
-        htmlBody: `<p>Bonjour,</p><p>Veuillez trouver ci-joint le compte-rendu concernant <strong>${kidName}</strong>.</p><p>Cordialement</p>`,
+        htmlBody: `<p>Bonjour,</p><p>Veuillez trouver ci-joint le compte-rendu d'entretien annuel concernant <strong>${kidName}</strong>.</p><p>Cordialement</p>`,
         attachments: [pdfBlob]
       });
 
