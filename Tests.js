@@ -416,3 +416,18 @@ function testToutesLesRelances() {
   console.log("\n=== Tous les tests relances terminés ===");
   console.log("👉 Vérifie EMAIL_TEST et les Journaux d'exécution");
 }
+
+
+function testGetToken() {
+  // Vider le cache d'abord pour forcer un nouveau token
+  const props = PropertiesService.getScriptProperties();
+  props.deleteProperty("HA_ACCESS_TOKEN");
+  props.deleteProperty("HA_TOKEN_EXPIRY");
+  
+  try {
+    const token = getAccessToken();
+    Logger.log("✅ Token OK : " + token.substring(0, 20) + "...");
+  } catch(e) {
+    Logger.log("❌ Erreur : " + e.message);
+  }
+}
