@@ -1,4 +1,5 @@
 
+
 // ══════════════════════════════════════════════════════════════
 // CONSTRUCTION DES DONNÉES DASHBOARD
 // ══════════════════════════════════════════════════════════════
@@ -10,33 +11,29 @@ function buildDashboardData() {
   const enfants     = getSheetRows(ss, CONFIG.SHEET_ENFANT);
   const rdvs        = getSheetRows(ss, CONFIG.SHEET_RDV);
 
-  // ── GLOBALE ──
   const C_P  = CONFIG.COLS.PARRAIN;
   const C_PA = CONFIG.COLS.PARRAINAGE;
   const C_E  = CONFIG.COLS.ENFANT;
   const C_R  = CONFIG.COLS.RDV;
 
-  const totalParrains    = countDistinct(parrains,    C_P.SPONSOR_ID);
+  const totalParrains    = countDistinct(parrains, C_P.SPONSOR_ID);
   const totalParrainages = parrainages.length;
   const totalEnfants     = countDistinct(enfants, C_E.KID_ID);
   const ongoing          = parrainages.filter(r => r[C_PA.STATUS] === 'Ongoing').length;
-  const agesMoyens = calculerAgesMoyens(parrainages, enfants, C_PA, C_E);
-  const dureeMoy   = (agesMoyens.age_moy_fin - agesMoyens.age_moy_debut) || calculerDureeMoyenne(parrainages, C_PA);
+  const agesMoyens       = calculerAgesMoyens(parrainages, enfants, C_PA, C_E);
+  const dureeMoy         = (agesMoyens.age_moy_fin - agesMoyens.age_moy_debut) || calculerDureeMoyenne(parrainages, C_PA);
 
-
-  // ── PAR ANNÉE ──
   const annees    = extraireAnnees(parrainages, C_PA.SPONSORSHIP_START_DATE);
   const par_annee = {};
   annees.forEach(a => {
     par_annee[a] = calculerParAnnee(parrainages, rdvs, a, C_PA, C_R);
   });
 
-  // ── PROFILS ENFANTS FILTRÉS ──
   const enfants_data = {
-  all:      calculerProfilEnfants(enfants, rdvs, parrainages, null,       C_E, C_R, C_PA),
-  Ongoing:  calculerProfilEnfants(enfants, rdvs, parrainages, 'Ongoing',  C_E, C_R, C_PA),
-  Finished: calculerProfilEnfants(enfants, rdvs, parrainages, 'Finished', C_E, C_R, C_PA),
-};
+    all:      calculerProfilEnfants(enfants, rdvs, parrainages, null,       C_E, C_R, C_PA),
+    Ongoing:  calculerProfilEnfants(enfants, rdvs, parrainages, 'Ongoing',  C_E, C_R, C_PA),
+    Finished: calculerProfilEnfants(enfants, rdvs, parrainages, 'Finished', C_E, C_R, C_PA),
+  };
 
   return {
     parrains:      totalParrains,
@@ -109,13 +106,21 @@ function calculerAgesMoyens(parrainages, enfants, C_PA, C_E) {
   };
 }
 
-function extraireAnnees(parrainages, col) {
+function extraireAnnees(parrainages, colDebut, colFin) {
   const annees = new Set();
   parrainages.forEach(r => {
-    const d = r[col];
+    const d = r[colDebut];
+    const f = r[colFin];
     if (d) annees.add(new Date(d).getFullYear());
+    if (f) annees.add(new Date(f).getFullYear());
   });
-  return [...annees].filter(a => !isNaN(a)).sort();
+  const liste = [...annees].filter(a => !isNaN(a));
+  if (!liste.length) return [];
+  const min = Math.min(...liste);
+  const max = Math.max(Math.max(...liste), new Date().getFullYear());
+  const result = [];
+  for (let a = min; a <= max; a++) result.push(a);
+  return result;
 }
 
 function calculerParAnnee(parrainages, rdvs, annee, C_PA, C_R) {
@@ -586,41 +591,142 @@ function getCRsData() {
 }
 
 function buildDiagnosticData() {
-  const ss       = SpreadsheetApp.getActiveSpreadsheet();
-  const parrains = getSheetRows(ss, CONFIG.SHEET_PARRAINS);
+  const ss       = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const parrains = getSheetRows(ss, CONFIG.SHEET_PARRAIN);
   const membres  = getSheetRows(ss, CONFIG.SHEET_MEMBRES);
   const cotis    = getSheetRows(ss, CONFIG.SHEET_COTISATIONS_MERGED);
   const suivi    = getSheetRows(ss, CONFIG.SHEET_SUIVI);
 
-  const emailsCotis = new Set(cotis.map(r => normaliser(r[C_C.EMAIL])));
-  const emailsSuivi = new Set(suivi.map(r => normaliser(r[C_S.EMAIL_PARRAIN])));
+  // ── Alias colonnes ──
+  const C_P  = CONFIG.COLS.PARRAIN;
+  const C_M  = CONFIG.COLS.MEMBRES;
+  const C_C  = CONFIG.COLS.COTISATIONS_MERGED;
+  const C_S  = CONFIG.COLS.SUIVI;
+  const C_HA = CONFIG.COLS.HELLO_ASSO;  // ← manquait dans ton ancienne version
+
+  const normaliser = s => String(s || '').trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  function nomCorrespondent(a, b) {
+    const na = normaliser(a), nb = normaliser(b);
+    if (!na || !nb) return false;
+    return na === nb || na.includes(nb) || nb.includes(na);
+  }
 
   const alertes = [];
 
-  parrains.forEach(p => {
-    const nom = p[C_P.NOM] + ' ' + p[C_P.PRENOM];
-    const email = p[C_P.EMAIL];
-    if (!emailsCotis.has(normaliser(email)))
-      alertes.push({ type: 'parrain', probleme: 'Sans cotisation', nom, email });
-    if (!emailsSuivi.has(normaliser(email)))
-      alertes.push({ type: 'parrain', probleme: 'Sans parrainage', nom, email });
+  // ── Index emails et noms parrains connus ──
+  const emailsParrains = new Set(
+    parrains.map(p => normaliser(p[C_P.ADRESSE_MAIL])).filter(Boolean)
+  );
+  const nomsParrains = parrains
+    .map(p => normaliser(String(p[C_P.SPONSOR_NAME] || '').trim()))
+    .filter(Boolean);
+
+  // ── 1. Cotisations sans membre connu ──
+  const emailsMembres = new Set(membres.map(r => normaliser(r[C_M.ADRESSE_MAIL])));
+  cotis.forEach(r => {
+    const email = normaliser(r[C_C.EMAIL]);
+    const nom   = String(r[C_C.NOM] || '').trim();
+    if (email && !emailsMembres.has(email) && !emailsParrains.has(email)) {
+      alertes.push({
+        type:   'cotisation-sans-membre',
+        nom:    nom,
+        email:  email,
+        detail: 'Cotisation sans correspondance dans les membres',
+      });
+    }
   });
 
-  membres.forEach(m => {
-    const nom = m[C_M.NOM] + ' ' + m[C_M.PRENOM];
-    const email = m[C_M.EMAIL];
-    if (!emailsCotis.has(normaliser(email)))
-      alertes.push({ type: 'membre', probleme: 'Sans cotisation', nom, email });
+  // ── 2. Email différent : parrain dans suivi non trouvé dans Fiche_Parrain ──
+  suivi.forEach(r => {
+    const emailSuivi = normaliser(r[C_S.ADRESSE_MAIL]);
+    const nomSuivi   = String(r[C_S.SPONSOR_NAME] || '').trim();
+    if (!emailSuivi) return;
+    if (!emailsParrains.has(emailSuivi)) {
+      const matchNom = nomsParrains.some(n => nomCorrespondent(n, nomSuivi));
+      if (matchNom) {
+        alertes.push({
+          type:   'email-different',
+          nom:    nomSuivi,
+          email:  emailSuivi,
+          detail: 'Nom trouvé dans Fiche_Parrain mais email différent',
+        });
+      }
+    }
   });
+
+
+  // ── 3. HelloAsso sans parrain connu ──
+  
+  Logger.log('👉 Début section HelloAsso');
+  const sheetsHA = [CONFIG.SHEET_HELLO_ASSO_1, CONFIG.SHEET_HELLO_ASSO_2].filter(Boolean);
+  Logger.log('sheetsHA : ' + JSON.stringify(sheetsHA));
+
+
+  sheetsHA.forEach(sheetName => {
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      Logger.log('⚠️ Onglet HelloAsso introuvable : ' + sheetName);
+      return;
+    }
+    const rows = getSheetRows(ss, sheetName);
+    Logger.log(`📋 ${sheetName} — ${rows.length} lignes`);
+
+    rows.forEach((row, i) => {
+      const statutBrut = String(row[C_HA.STATUT] || '').trim();
+      const statut     = normaliser(statutBrut);
+      Logger.log(`  ligne ${i} — statut brut: "${statutBrut}" — normalisé: "${statut}"`);
+  
+      if (statut !== 'authorized') return;
+
+      const email      = normaliser(row[C_HA.EMAIL]);
+      const prenom     = String(row[C_HA.PRENOM] || '').trim();
+      const nom        = String(row[C_HA.NOM]    || '').trim();
+      const nomComplet = normaliser([nom, prenom].filter(Boolean).join(' '));
+
+      Logger.log(`ligne ${i} — statut OK — email: "${email}" — nom: "${nomComplet}"`);
+      Logger.log(`emailsParrains.has(email): ${emailsParrains.has(email)}`);
+
+      Logger.log(`  → email: "${email}" — nom: "${nomComplet}"`);
+
+      // Match par email → OK
+      if (email && emailsParrains.has(email)) {
+        Logger.log(`  ✅ Match email`);
+        return;
+      }
+
+      // Match par nom mais email différent
+      if (nomComplet && nomsParrains.some(n => nomCorrespondent(n, nomComplet))) {
+        Logger.log(`  ⚠️ Match nom, email différent`);
+        alertes.push({
+          type:   'email-different',
+          nom:    [nom, prenom].filter(Boolean).join(' '),
+          email:  email || '—',
+          detail: `Email HelloAsso différent de la fiche parrain (source : ${sheetName})`,
+        });
+        return;
+      }
+
+      // Aucun match → parrain inconnu
+      Logger.log(`  ❌ Aucun match → alerte helloasso-sans-parrain`);
+      alertes.push({
+        type:   'helloasso-sans-parrain',
+        nom:    [nom, prenom].filter(Boolean).join(' '),
+        email:  email || '—',
+        detail: `Source : ${sheetName}`,
+      });
+    });
+  });
+
+  Logger.log('🔍 Diagnostic — total alertes : ' + alertes.length);
 
   return {
     alertes,
     total: alertes.length,
-    ok: alertes.length === 0
+    ok:    alertes.length === 0,
   };
 }
-
-
 
 function serveDashboardData() {
   try {
@@ -660,6 +766,7 @@ function serveDashboardData() {
     return { error: e.toString() };
   }
 }
+
 
 
 
