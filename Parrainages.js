@@ -101,7 +101,7 @@ function processSponsorshipSubmission() {
 
 /**
  * ===============================================
- * Traitement d'une nouvelle soumission d fin de parrainage
+ * Traitement d'une nouvelle soumission de fin de parrainage
  * ===============================================
  */
 function markParrainageFinished() {
