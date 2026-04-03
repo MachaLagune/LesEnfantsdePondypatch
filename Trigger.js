@@ -45,13 +45,17 @@ function processNewSubmission() {
 // ============================================================
 
 function MajOngletSuivi() {
-  _resetLogoCache();
-  exportToSheets();            // helloasso-s1 ou helloasso-s2 selon semestre
-  mergeParrainages();          // Suivi_Parrainages
-  exportCotisationToSheets();  // helloasso-cotisation
-  mergeCotisations();
-  majTousLesSuivisEtParrainage(); // filet de sécurité quotidien
+  // Forcer un token frais à chaque exécution
+  const props = PropertiesService.getScriptProperties();
+  props.deleteProperty("HA_ACCESS_TOKEN");
+  props.deleteProperty("HA_TOKEN_EXPIRY");
 
+  _resetLogoCache();
+  exportToSheets();
+  mergeParrainages();
+  exportCotisationToSheets();
+  mergeCotisations();
+  majTousLesSuivisEtParrainage();
 }
 
 // ============================================================
@@ -204,16 +208,7 @@ function declencheurValidationSemestrielle() {
   Logger.log(`✅ Rappel semestriel envoyé pour ${semestre.label}`);
 }
 
-function declencheurRecapMensuel() {
-  envoyerRecapMensuelRelances();
-}
 
-function declencheurRelanceMembres() {
-  const mois = new Date().getMonth();
-  if (mois !== 6) return;
-
-  envoyerRecapMensuelRelancesMembres();
-}
 
 
 
@@ -231,7 +226,7 @@ function onOpen() {
     .addToUi();
 
   ui.createMenu("🤖 Parrainages")
-    .addItem("🔄 Synchroniser maintenant", "MajOngletSuivi")
+    .addItem("🔄Synchroniser maintenant", "MajOngletSuivi")
     .addSeparator()
     .addItem("🔍 Forcer recherche campagne", "forcerRechercheEtExport")
     .addSeparator()
